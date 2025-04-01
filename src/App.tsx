@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -17,6 +16,7 @@ import JobOrders from "./pages/JobOrders";
 import JobOrderDetail from "./pages/JobOrderDetail";
 import Applicants from "./pages/Applicants";
 import Clients from "./pages/Clients";
+import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -180,6 +180,15 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Clients user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <Users user={user} />
                 </ProtectedRoute>
               }
             />
