@@ -76,6 +76,7 @@ export interface DashboardStats {
 export interface JobOrderStatus {
   status: string;
   count: number;
+  color: string; // Added color property to fix type error
 }
 
 export interface ApplicantsPerJobOrder {

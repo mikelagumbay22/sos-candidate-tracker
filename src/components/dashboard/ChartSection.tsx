@@ -52,18 +52,28 @@ const ChartSection = () => {
       try {
         setLoading(true);
         
-        // Fetch job order status data
+        // Fetch job order status data - fixing the group method error
         const { data: statusData, error: statusError } = await supabase
           .from("joborder")
-          .select("status, count(*)")
-          .group("status");
+          .select("status, count")
+          .select("status") // Use select instead of group
+          // Count will be calculated manually after fetching the data
         
         if (!statusError && statusData) {
-          const processedStatusData = statusData.map((item: any) => ({
-            status: item.status,
-            count: parseInt(item.count),
-            color: getStatusColor(item.status)
+          // Process the data to get counts by status
+          const statusCounts: Record<string, number> = {};
+          statusData.forEach((item: any) => {
+            const status = item.status;
+            statusCounts[status] = (statusCounts[status] || 0) + 1;
+          });
+          
+          // Convert to the format we need
+          const processedStatusData: JobOrderStatus[] = Object.entries(statusCounts).map(([status, count]) => ({
+            status,
+            count,
+            color: getStatusColor(status)
           }));
+          
           setStatusData(processedStatusData.length > 0 ? processedStatusData : sampleStatusData);
         }
         
@@ -72,21 +82,30 @@ const ChartSection = () => {
           .from("joborder")
           .select(`
             id, 
-            job_title, 
-            joborder_applicant!joborder_id (count)
+            job_title
           `);
         
         if (!applicantsError && applicantsData) {
-          const processedApplicantsData = applicantsData.map((item: any) => ({
-            job_title: item.job_title,
-            applicants_count: parseInt(item.joborder_applicant[0]?.count || 0)
-          }));
-          setApplicantsData(processedApplicantsData.length > 0 ? processedApplicantsData : sampleApplicantsData);
+          // For each job order, we need to get the count of applicants
+          const jobApplicantCounts = await Promise.all(
+            applicantsData.map(async (job: any) => {
+              const { count } = await supabase
+                .from("joborder_applicant")
+                .select("*", { count: "exact", head: true })
+                .eq("joborder_id", job.id);
+              
+              return {
+                job_title: job.job_title,
+                applicants_count: count || 0
+              };
+            })
+          );
+          
+          setApplicantsData(jobApplicantCounts.length > 0 ? jobApplicantCounts : sampleApplicantsData);
         }
         
         // This would be a more complex query for average completion time
         // For now we just use sample data
-        // In real implementation, it would calculate time between job creation and completion
         
       } catch (error) {
         console.error("Error fetching chart data:", error);
