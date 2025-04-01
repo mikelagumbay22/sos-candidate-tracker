@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -16,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EndorseApplicantDialogProps {
   open: boolean;
@@ -27,6 +28,8 @@ interface EndorseApplicantDialogProps {
 
 const formSchema = z.object({
   applicant_id: z.string({ required_error: "Please select an applicant" }),
+  asking_salary: z.string().optional(),
+  interview_notes: z.string().optional(),
 });
 
 const EndorseApplicantDialog = ({ 
@@ -43,6 +46,8 @@ const EndorseApplicantDialog = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       applicant_id: "",
+      asking_salary: "",
+      interview_notes: "",
     },
   });
   
@@ -106,8 +111,11 @@ const EndorseApplicantDialog = ({
           client_id: jobOrder.client_id,
           applicant_id: values.applicant_id,
           author_id: user.id,
-          application_stage: "Client Endorsement",
+          application_stage: "Sourced",
           application_status: "Pending",
+          asking_salary: values.asking_salary ? 
+            Number(values.asking_salary.replace(/[^0-9]/g, '')) : null,
+          interview_notes: values.interview_notes || null,
         });
       
       if (error) throw error;
@@ -135,39 +143,73 @@ const EndorseApplicantDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Endorse Applicant for {jobOrder.job_title}</DialogTitle>
+          <DialogTitle>Cross-endorse Applicant for {jobOrder.job_title}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {applicants.length > 0 ? (
-              <FormField
-                control={form.control}
-                name="applicant_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Applicant</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+              <>
+                <FormField
+                  control={form.control}
+                  name="applicant_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Applicant</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an applicant" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {applicants.map((applicant) => (
+                            <SelectItem key={applicant.id} value={applicant.id}>
+                              {applicant.first_name} {applicant.last_name} - {applicant.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="asking_salary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Asking Salary</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an applicant" />
-                        </SelectTrigger>
+                        <Input placeholder="e.g., $80,000" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {applicants.map((applicant) => (
-                          <SelectItem key={applicant.id} value={applicant.id}>
-                            {applicant.first_name} {applicant.last_name} - {applicant.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="interview_notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Interview Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add any initial notes about the applicant..."
+                          className="resize-y min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             ) : (
               <div className="py-4">
                 <p className="text-center text-muted-foreground">

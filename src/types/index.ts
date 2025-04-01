@@ -25,6 +25,7 @@ export interface Applicant {
   author?: {
     first_name: string;
     last_name: string;
+    username: string;
   };
 }
 

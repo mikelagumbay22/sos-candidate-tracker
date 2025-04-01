@@ -37,6 +37,7 @@ interface ApplicantWithDetails extends JobOrderApplicant {
   author: {
     first_name: string;
     last_name: string;
+    username: string;
   };
 }
 
@@ -127,7 +128,8 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
           applicant:applicants(*),
           author:users!joborder_applicant_author_id_fkey (
             first_name,
-            last_name
+            last_name,
+            username
           )
         `)
         .eq("joborder_id", id);
@@ -350,7 +352,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                     onClick={() => setIsEndorseOpen(true)}
                   >
                     <Upload className="h-4 w-4 mr-1" />
-                    Endorse Applicant
+                    Cross-endorse Applicant
                   </Button>
                   
                   <Button 
@@ -383,8 +385,10 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                             <div>
                               <p className="font-medium">
                                 {applicant.author ? 
-                                  `${applicant.author.first_name} ${applicant.author.last_name}` : 
-                                  "N/A"}
+                                  user?.role === 'administrator' 
+                                    ? `${applicant.author.first_name} ${applicant.author.last_name}`
+                                    : applicant.author.username
+                                  : "N/A"}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {applicant.created_at ? 

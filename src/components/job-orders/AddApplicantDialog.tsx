@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -142,12 +141,13 @@ const AddApplicantDialog = ({
         .insert({
           joborder_id: jobOrder.id,
           client_id: jobOrder.client_id,
+          applicant_id: applicantId,
           author_id: user.id,
           asking_salary: applicationValues.asking_salary ? 
             Number(applicationValues.asking_salary.replace(/[^0-9]/g, '')) : null,
           interview_notes: applicationValues.interview_notes || null,
-          application_stage: applicationValues.application_stage,
-          application_status: applicationValues.application_status,
+          application_stage: "Sourced",
+          application_status: "Pending",
         });
       
       if (applicationError) throw applicationError;
@@ -317,62 +317,6 @@ const AddApplicantDialog = ({
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicationForm.control}
-                  name="application_stage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Application Stage*</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select stage" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Sourced">Sourced</SelectItem>
-                          <SelectItem value="Interview">Interview</SelectItem>
-                          <SelectItem value="Assessment">Assessment</SelectItem>
-                          <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
-                          <SelectItem value="Client Interview">Client Interview</SelectItem>
-                          <SelectItem value="Offer">Offer</SelectItem>
-                          <SelectItem value="Hired">Hired</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicationForm.control}
-                  name="application_status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status*</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="Pass">Pass</SelectItem>
-                          <SelectItem value="Fail">Fail</SelectItem>
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -57,7 +57,8 @@ const Applicants = ({ user }: ApplicantsProps) => {
           *,
           author:users!applicants_author_id_fkey (
             first_name,
-            last_name
+            last_name,
+            username
           )
         `
         )
@@ -180,7 +181,7 @@ const Applicants = ({ user }: ApplicantsProps) => {
                   <TableBody>
                     {filteredApplicants.map((applicant) => (
                       <TableRow key={applicant.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium">                          
                           {applicant.first_name} {applicant.last_name}
                         </TableCell>
                         <TableCell>{applicant.email}</TableCell>
@@ -189,9 +190,12 @@ const Applicants = ({ user }: ApplicantsProps) => {
                         <TableCell>
                           <div>
                             <p className="font-medium">
-                              {applicant.author
-                                ? `${applicant.author.first_name} ${applicant.author.last_name}`
-                                : "N/A"}
+
+                              {applicant.author ? 
+                                  user?.role === 'administrator' 
+                                    ? `${applicant.author.first_name} ${applicant.author.last_name}`
+                                    : applicant.author.username
+                                  : "N/A"}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {applicant.created_at
