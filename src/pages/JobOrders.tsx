@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, JobOrder } from "@/types";
@@ -76,6 +75,7 @@ const JobOrders = ({ user }: JobOrdersProps) => {
       
       // Fetch applicant counts for each job order
       const jobOrdersWithCounts = await Promise.all(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (data || []).map(async (job: any) => {
           const { count } = await supabase
             .from("joborder_applicant")
@@ -156,10 +156,12 @@ const JobOrders = ({ user }: JobOrdersProps) => {
                     </SelectContent>
                   </Select>
                   
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Job
-                  </Button>
+                  {user?.role === 'administrator' && (
+                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Job
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

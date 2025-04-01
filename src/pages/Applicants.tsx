@@ -5,7 +5,14 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog";
@@ -20,37 +27,40 @@ const Applicants = ({ user }: ApplicantsProps) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
+
   useEffect(() => {
     fetchApplicants();
-    
+
     // Set up real-time subscription
     const applicantsSubscription = supabase
-      .channel('applicants-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'applicants' }, 
+      .channel("applicants-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "applicants" },
         () => {
           fetchApplicants();
         }
       )
       .subscribe();
-      
+
     return () => {
       supabase.removeChannel(applicantsSubscription);
     };
   }, []);
-  
+
   const fetchApplicants = async () => {
     try {
       const { data, error } = await supabase
         .from("applicants")
-        .select(`
+        .select(
+          `
           *,
           author:users!applicants_author_id_fkey (
             first_name,
             last_name
           )
-        `)
+        `
+        )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -66,25 +76,25 @@ const Applicants = ({ user }: ApplicantsProps) => {
       setLoading(false);
     }
   };
-  
+
   const handleDeleteApplicant = async (id: string) => {
     try {
       // Soft delete by setting deleted_at
       const { error } = await supabase
         .from("applicants")
-        .update({ 
+        .update({
           deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: "Applicant deleted successfully!",
       });
-      
+
       // Refresh the list
       fetchApplicants();
     } catch (error) {
@@ -96,25 +106,26 @@ const Applicants = ({ user }: ApplicantsProps) => {
       });
     }
   };
-  
-  const filteredApplicants = applicants.filter(applicant => 
-    applicant.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    applicant.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    applicant.email.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const filteredApplicants = applicants.filter(
+    (applicant) =>
+      applicant.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      applicant.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      applicant.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
+
   return (
     <div className="flex h-screen">
       <Sidebar user={user} />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header user={user} />
-        
+
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h2 className="text-xl font-semibold">Applicants</h2>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -125,19 +136,19 @@ const Applicants = ({ user }: ApplicantsProps) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
+
                 <Button onClick={() => setIsCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   New Applicant
                 </Button>
               </div>
             </div>
-            
+
             {loading ? (
               <div className="bg-white rounded-md shadow overflow-hidden">
                 <div className="animate-pulse">
                   <div className="h-14 bg-gray-200"></div>
-                  {[1, 2, 3, 4, 5].map(i => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="h-16 border-t border-gray-200">
                       <div className="flex p-4">
                         <div className="flex-1 space-y-2">
@@ -159,9 +170,11 @@ const Applicants = ({ user }: ApplicantsProps) => {
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Location</TableHead>
-                      <TableHead>Added</TableHead>
+  
                       <TableHead>Added By</TableHead>
+                      {user?.role === 'administrator' && (
                       <TableHead className="text-right">Actions</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -176,34 +189,42 @@ const Applicants = ({ user }: ApplicantsProps) => {
                         <TableCell>
                           <div>
                             <p className="font-medium">
-                              {applicant.author ? 
-                                `${applicant.author.first_name} ${applicant.author.last_name}` : 
-                                "N/A"}
+                              {applicant.author
+                                ? `${applicant.author.first_name} ${applicant.author.last_name}`
+                                : "N/A"}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {applicant.created_at ? 
-                                formatDateToEST(applicant.created_at) : 
-                                "N/A"}
+                              {applicant.created_at
+                                ? formatDateToEST(applicant.created_at)
+                                : "N/A"}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mr-2"
-                            onClick={() => {/* View/Edit applicant */}}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDeleteApplicant(applicant.id)}
-                          >
-                            Delete
-                          </Button>
+                          {user?.role === "administrator" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mr-2"
+                              onClick={() => {
+                                /* View/Edit applicant */
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {user?.role === "administrator" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-500 hover:text-red-700"
+                              onClick={() =>
+                                handleDeleteApplicant(applicant.id)
+                              }
+                            >
+                              Delete
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -213,12 +234,12 @@ const Applicants = ({ user }: ApplicantsProps) => {
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
-                  {searchTerm ? 
-                    "No applicants match your search criteria." : 
-                    "No applicants found. Add your first applicant to get started."}
+                  {searchTerm
+                    ? "No applicants match your search criteria."
+                    : "No applicants found. Add your first applicant to get started."}
                 </p>
-                <Button 
-                  className="mt-4" 
+                <Button
+                  className="mt-4"
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -229,7 +250,7 @@ const Applicants = ({ user }: ApplicantsProps) => {
           </div>
         </main>
       </div>
-      
+
       <CreateApplicantDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}

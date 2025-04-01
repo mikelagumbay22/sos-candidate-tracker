@@ -93,6 +93,7 @@ const RegisterForm = () => {
         // Redirect to login page
         navigate("/login");
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message || "An unexpected error occurred. Please try again.");
@@ -105,7 +106,7 @@ const RegisterForm = () => {
     <div className="w-full max-w-md">
       <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create an Account</h2>
       <p className="text-center text-gray-600 mb-8">
-        Register to get started with the ATS system
+        Register to get started with the Applicant Tracking System
       </p>
       
       {error && (

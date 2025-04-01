@@ -41,7 +41,7 @@ const LoginForm = () => {
       navigate("/");
       toast({
         title: "Login successful",
-        description: "Welcome back to the ATS system.",
+        description: "Welcome back to the Applicant Tracking System.",
       });
     } catch (err) {
       console.error("Login error:", err);

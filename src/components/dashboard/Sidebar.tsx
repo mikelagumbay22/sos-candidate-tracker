@@ -25,7 +25,7 @@ const Sidebar = ({ user }: SidebarProps) => {
   const isAdmin = user?.role === "administrator";
   
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Dashboard", href: "/", icon: LayoutDashboard, adminOnly: true},
     { name: "Job Orders", href: "/job-orders", icon: Briefcase },
     { name: "Applicants", href: "/applicants", icon: FileText },
     { name: "Users", href: "/users", icon: Users, adminOnly: true },
@@ -43,7 +43,7 @@ const Sidebar = ({ user }: SidebarProps) => {
           collapsed ? "justify-center w-full" : "justify-start"
         )}>
           {!collapsed && (
-            <span className="text-xl font-bold text-ats-blue-600">ATS System</span>
+            <span className="text-xl font-bold text-ats-blue-600">Roster</span>
           )}
           {collapsed && (
             <span className="text-xl font-bold text-ats-blue-600">ATS</span>

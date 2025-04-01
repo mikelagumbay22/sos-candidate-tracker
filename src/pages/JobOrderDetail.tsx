@@ -245,15 +245,17 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
               
               <h2 className="text-xl font-semibold flex-1">{jobOrder.job_title}</h2>
               
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="ml-2"
-                onClick={() => setIsEditDialogOpen(true)}
+              {user?.role === 'administrator' && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  onClick={() => setIsEditDialogOpen(true)}
               >
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
+              )}
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
