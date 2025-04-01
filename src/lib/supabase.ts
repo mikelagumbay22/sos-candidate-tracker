@@ -2,8 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://jgjkyzguoksbsawfxcmn.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impnamt5emd1b2tzYnNhd2Z4Y21uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMzc3NTcsImV4cCI6MjA1ODgxMzc1N30.3HN0McaIVIM0uXDFYnoRBtvCobOMGNBR_nt-YZV-rnw';
+// Use environment variables from the .env file
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wnywlwahimhlfnxmwhsu.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueXdsd2FoaW1obGZueG13aHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0OTU3ODQsImV4cCI6MjA1OTA3MTc4NH0._OMz-H4A_cILsKpuXD_ZjaI4yj1Q2LlZoBxspFwRovw';
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
