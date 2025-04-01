@@ -12,6 +12,10 @@ import { User } from "./types";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import JobOrders from "./pages/JobOrders";
+import JobOrderDetail from "./pages/JobOrderDetail";
+import Applicants from "./pages/Applicants";
+import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,6 +101,7 @@ const App = () => {
           <Routes>
             <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
             <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
+            
             <Route
               path="/"
               element={
@@ -105,6 +110,43 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/job-orders"
+              element={
+                <ProtectedRoute>
+                  <JobOrders user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/job-orders/:id"
+              element={
+                <ProtectedRoute>
+                  <JobOrderDetail user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/applicants"
+              element={
+                <ProtectedRoute>
+                  <Applicants user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <Clients user={user} />
+                </ProtectedRoute>
+              }
+            />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

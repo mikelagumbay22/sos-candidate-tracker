@@ -36,6 +36,17 @@ export interface JobOrder {
   status: 'kickoff sourcing' | 'Initial Interview' | 'Client Endorsement' | 'Client Interview' | 'Offered' | 'Hired' | 'Canceled';
   responsibilities_requirements?: string;
   client_budget?: string;
+  // Additional properties for UI
+  applicant_count?: number;
+  clients?: {
+    first_name: string;
+    last_name: string;
+    company: string;
+    position: string;
+    email: string;
+    phone?: string;
+    location?: string;
+  };
 }
 
 export interface JobOrderApplicant {
@@ -50,6 +61,8 @@ export interface JobOrderApplicant {
   application_stage: 'Sourced' | 'Interview' | 'Assessment' | 'Client Endorsement' | 'Client Interview' | 'Offer' | 'Hired';
   application_status: 'Pending' | 'Pass' | 'Fail';
   client_feedback?: string;
+  applicant_id?: string;
+  applicant?: Applicant;
 }
 
 export interface Client {
