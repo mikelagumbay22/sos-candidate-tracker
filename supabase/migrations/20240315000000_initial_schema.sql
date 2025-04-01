@@ -87,7 +87,6 @@ CREATE INDEX IF NOT EXISTS idx_joborder_applicant_applicant_id ON public.joborde
 CREATE INDEX IF NOT EXISTS idx_joborder_applicant_application_stage ON public.joborder_applicant(application_stage);
 CREATE INDEX IF NOT EXISTS idx_joborder_applicant_application_status ON public.joborder_applicant(application_status);
 
--- Create RLS (Row Level Security) policies
 -- Enable RLS on all tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
@@ -95,102 +94,102 @@ ALTER TABLE public.joborder ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applicants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.joborder_applicant ENABLE ROW LEVEL SECURITY;
 
--- Users table policies
-CREATE POLICY "Users can view their own profile" 
+-- FIXED: Modified Users table policies to avoid recursion
+CREATE POLICY "Allow users to view their own profile" 
 ON public.users FOR SELECT 
 TO authenticated 
 USING (auth.uid() = id);
 
-CREATE POLICY "Admins can view all users" 
+CREATE POLICY "Allow admins to view all users" 
 ON public.users FOR SELECT 
 TO authenticated 
 USING (
-  EXISTS (
-    SELECT 1 FROM public.users
-    WHERE id = auth.uid() AND role = 'administrator'
+  auth.uid() IN (
+    SELECT id FROM auth.users 
+    WHERE raw_user_meta_data->>'role' = 'administrator'
   )
 );
 
-CREATE POLICY "Admins can insert users" 
+CREATE POLICY "Allow admins to insert users" 
 ON public.users FOR INSERT 
 TO authenticated 
 WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM public.users
-    WHERE id = auth.uid() AND role = 'administrator'
+  auth.uid() IN (
+    SELECT id FROM auth.users 
+    WHERE raw_user_meta_data->>'role' = 'administrator'
   )
 );
 
-CREATE POLICY "Admins can update users" 
+CREATE POLICY "Allow admins to update users" 
 ON public.users FOR UPDATE 
 TO authenticated 
 USING (
-  EXISTS (
-    SELECT 1 FROM public.users
-    WHERE id = auth.uid() AND role = 'administrator'
+  auth.uid() IN (
+    SELECT id FROM auth.users 
+    WHERE raw_user_meta_data->>'role' = 'administrator'
   )
 );
 
 -- Clients table policies
-CREATE POLICY "Users can view clients" 
+CREATE POLICY "Allow users to view clients" 
 ON public.clients FOR SELECT 
 TO authenticated 
 USING (true);
 
-CREATE POLICY "Users can create clients" 
+CREATE POLICY "Allow users to create clients" 
 ON public.clients FOR INSERT 
 TO authenticated 
 WITH CHECK (auth.uid() = author_id);
 
-CREATE POLICY "Users can update their own clients" 
+CREATE POLICY "Allow users to update their own clients" 
 ON public.clients FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = author_id);
 
 -- Job Orders table policies
-CREATE POLICY "Users can view job orders" 
+CREATE POLICY "Allow users to view job orders" 
 ON public.joborder FOR SELECT 
 TO authenticated 
 USING (true);
 
-CREATE POLICY "Users can create job orders" 
+CREATE POLICY "Allow users to create job orders" 
 ON public.joborder FOR INSERT 
 TO authenticated 
 WITH CHECK (auth.uid() = author_id);
 
-CREATE POLICY "Users can update their own job orders" 
+CREATE POLICY "Allow users to update their own job orders" 
 ON public.joborder FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = author_id);
 
 -- Applicants table policies
-CREATE POLICY "Users can view applicants" 
+CREATE POLICY "Allow users to view applicants" 
 ON public.applicants FOR SELECT 
 TO authenticated 
 USING (true);
 
-CREATE POLICY "Users can create applicants" 
+CREATE POLICY "Allow users to create applicants" 
 ON public.applicants FOR INSERT 
 TO authenticated 
 WITH CHECK (auth.uid() = author_id);
 
-CREATE POLICY "Users can update their own applicants" 
+CREATE POLICY "Allow users to update their own applicants" 
 ON public.applicants FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = author_id);
 
 -- JobOrder-Applicant table policies
-CREATE POLICY "Users can view job order applicants" 
+CREATE POLICY "Allow users to view job order applicants" 
 ON public.joborder_applicant FOR SELECT 
 TO authenticated 
 USING (true);
 
-CREATE POLICY "Users can create job order applicant relationships" 
+CREATE POLICY "Allow users to create job order applicant relationships" 
 ON public.joborder_applicant FOR INSERT 
 TO authenticated 
 WITH CHECK (auth.uid() = author_id);
 
-CREATE POLICY "Users can update their own job order applicant relationships" 
+CREATE POLICY "Allow users to update their own job order applicant relationships" 
 ON public.joborder_applicant FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = author_id);

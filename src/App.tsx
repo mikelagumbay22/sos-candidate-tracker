@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./lib/supabase";
 import { User } from "./types";
+import { toast } from "@/components/ui/use-toast";
 
 // Pages
 import Login from "./pages/Login";
@@ -18,7 +19,14 @@ import Applicants from "./pages/Applicants";
 import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -29,16 +37,37 @@ const App = () => {
     const checkUser = async () => {
       try {
         const { data } = await supabase.auth.getSession();
+        
         if (data.session?.user) {
-          // Get user profile data
-          const { data: userData, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", data.session.user.id)
-            .single();
-
-          if (!error && userData) {
-            setUser(userData as User);
+          try {
+            // Get user metadata from auth user
+            const { data: authData } = await supabase.auth.getUser();
+            
+            if (authData.user) {
+              const userData: User = {
+                id: authData.user.id,
+                email: authData.user.email || '',
+                first_name: authData.user.user_metadata.first_name || '',
+                last_name: authData.user.user_metadata.last_name || '',
+                username: authData.user.user_metadata.username || '',
+                role: authData.user.user_metadata.role || 'recruiter',
+                created_at: authData.user.created_at,
+                updated_at: null,
+                deleted_at: null,
+              };
+              
+              setUser(userData);
+            }
+          } catch (profileError) {
+            console.error("Error fetching user profile:", profileError);
+            // Sign out if profile cannot be fetched
+            await supabase.auth.signOut();
+            setUser(null);
+            toast({
+              title: "Authentication Error",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
           }
         }
       } catch (error) {
@@ -54,15 +83,23 @@ const App = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
-          // Get user profile data
-          const { data: userData, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          if (!error && userData) {
-            setUser(userData as User);
+          try {
+            // Get user metadata from auth user
+            const userData: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              first_name: session.user.user_metadata.first_name || '',
+              last_name: session.user.user_metadata.last_name || '',
+              username: session.user.user_metadata.username || '',
+              role: session.user.user_metadata.role || 'recruiter',
+              created_at: session.user.created_at || new Date().toISOString(),
+              updated_at: null,
+              deleted_at: null,
+            };
+            
+            setUser(userData);
+          } catch (error) {
+            console.error("Error fetching user profile on auth change:", error);
           }
         } else if (event === "SIGNED_OUT") {
           setUser(null);
