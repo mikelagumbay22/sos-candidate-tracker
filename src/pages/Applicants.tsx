@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { User, Applicant } from "@/types";
 import Header from "@/components/dashboard/Header";
@@ -10,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog";
-import { format } from "date-fns";
+import { formatDateToEST } from "@/lib/utils";
 
 interface ApplicantsProps {
   user: User | null;
@@ -43,24 +42,24 @@ const Applicants = ({ user }: ApplicantsProps) => {
   
   const fetchApplicants = async () => {
     try {
-      setLoading(true);
-      
       const { data, error } = await supabase
         .from("applicants")
-        .select("*")
-        .is("deleted_at", null)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
+        .select(`
+          *,
+          author:users!applicants_author_id_fkey (
+            first_name,
+            last_name
+          )
+        `)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
       setApplicants(data || []);
     } catch (error) {
       console.error("Error fetching applicants:", error);
       toast({
         title: "Error",
-        description: "Failed to load applicants. Please try again.",
+        description: "Failed to fetch applicants",
         variant: "destructive",
       });
     } finally {
@@ -161,6 +160,7 @@ const Applicants = ({ user }: ApplicantsProps) => {
                       <TableHead>Phone</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Added</TableHead>
+                      <TableHead>Added By</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -174,9 +174,18 @@ const Applicants = ({ user }: ApplicantsProps) => {
                         <TableCell>{applicant.phone || "N/A"}</TableCell>
                         <TableCell>{applicant.location || "N/A"}</TableCell>
                         <TableCell>
-                          {applicant.created_at ? 
-                            format(new Date(applicant.created_at), "MMM d, yyyy") : 
-                            "N/A"}
+                          <div>
+                            <p className="font-medium">
+                              {applicant.author ? 
+                                `${applicant.author.first_name} ${applicant.author.last_name}` : 
+                                "N/A"}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {applicant.created_at ? 
+                                formatDateToEST(applicant.created_at) : 
+                                "N/A"}
+                            </p>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button

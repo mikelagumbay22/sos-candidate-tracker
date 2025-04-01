@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   first_name: string;
@@ -23,6 +22,10 @@ export interface Applicant {
   cv_link?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
+  author?: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 export interface JobOrder {

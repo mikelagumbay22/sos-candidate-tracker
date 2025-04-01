@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { User, Client } from "@/types";
 import Header from "@/components/dashboard/Header";
@@ -11,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import CreateClientDialog from "@/components/clients/CreateClientDialog";
 import EditClientDialog from "@/components/clients/EditClientDialog";
-import { format } from "date-fns";
+import { formatDateToEST } from "@/lib/utils";
 
 interface ClientsProps {
   user: User | null;
@@ -217,7 +216,7 @@ const Clients = ({ user }: ClientsProps) => {
                         </TableCell>
                         <TableCell>
                           {client.created_at ? 
-                            format(new Date(client.created_at), "MMM d, yyyy") : 
+                            formatDateToEST(client.created_at, "MMM d, yyyy") : 
                             "N/A"}
                         </TableCell>
                         <TableCell className="text-right">

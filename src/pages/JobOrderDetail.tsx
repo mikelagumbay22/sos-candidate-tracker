@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -15,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import EditJobOrderDialog from "@/components/job-orders/EditJobOrderDialog";
 import AddApplicantDialog from "@/components/job-orders/AddApplicantDialog";
 import EndorseApplicantDialog from "@/components/job-orders/EndorseApplicantDialog";
+import { formatDateToEST } from "@/lib/utils";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -34,6 +34,10 @@ interface JobOrderWithClient extends JobOrder {
 
 interface ApplicantWithDetails extends JobOrderApplicant {
   applicant: Applicant;
+  author: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
@@ -120,7 +124,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
         .from("joborder_applicant")
         .select(`
           *,
-          applicant:applicants(*)
+          applicant:applicants(*),
+          author:users!joborder_applicant_author_id_fkey (
+            first_name,
+            last_name
+          )
         `)
         .eq("joborder_id", id);
         
@@ -264,7 +272,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                     
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Created</p>
-                      <p>{jobOrder.created_at ? format(new Date(jobOrder.created_at), 'PPP') : 'N/A'}</p>
+                      <p>{jobOrder.created_at ? formatDateToEST(jobOrder.created_at, 'PPP') : 'N/A'}</p>
                     </div>
                     
                     <div>
@@ -291,41 +299,43 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Client Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Name</p>
-                      <p>{jobOrder.clients.first_name} {jobOrder.clients.last_name}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Company</p>
-                      <p>{jobOrder.clients.company}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Position</p>
-                      <p>{jobOrder.clients.position}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Email</p>
-                      <p className="truncate">{jobOrder.clients.email}</p>
-                    </div>
-                    
-                    {jobOrder.clients.phone && (
+              {user?.role === 'administrator' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Client Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Phone</p>
-                        <p>{jobOrder.clients.phone}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Name</p>
+                        <p>{jobOrder.clients.first_name} {jobOrder.clients.last_name}</p>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Company</p>
+                        <p>{jobOrder.clients.company}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Position</p>
+                        <p>{jobOrder.clients.position}</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Email</p>
+                        <p className="truncate">{jobOrder.clients.email}</p>
+                      </div>
+                      
+                      {jobOrder.clients.phone && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Phone</p>
+                          <p>{jobOrder.clients.phone}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
             
             <Card>
@@ -346,7 +356,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                     onClick={() => setIsAddApplicantOpen(true)}
                   >
                     <UserPlus className="h-4 w-4 mr-1" />
-                    Add Applicant
+                    Add New Applicant
                   </Button>
                 </div>
               </CardHeader>
@@ -355,6 +365,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Endorse by</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Contact</TableHead>
                         <TableHead>Stage</TableHead>
@@ -366,6 +377,20 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                     <TableBody>
                       {applicants.map((applicant) => (
                         <TableRow key={applicant.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">
+                                {applicant.author ? 
+                                  `${applicant.author.first_name} ${applicant.author.last_name}` : 
+                                  "N/A"}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {applicant.created_at ? 
+                                  formatDateToEST(applicant.created_at) : 
+                                  "N/A"}
+                              </p>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">

@@ -1,5 +1,4 @@
-
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNowEST } from "@/lib/utils";
 import { JobOrder } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
   };
   
   const formattedDate = jobOrder.created_at ? 
-    formatDistanceToNow(new Date(jobOrder.created_at), { addSuffix: true }) :
+    formatDistanceToNowEST(jobOrder.created_at) :
     "Unknown date";
 
   // Extract client name from the clients relation
