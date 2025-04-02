@@ -26,7 +26,7 @@ const Sidebar = ({ user }: SidebarProps) => {
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard, adminOnly: true },
     { name: "Job Orders", href: "/job-orders", icon: Briefcase },
-    { name: "Candidates", href: "/candidates", icon: FileText },
+    { name: "Candidates", href: "/applicants", icon: FileText },
     { name: "Users", href: "/users", icon: Users, adminOnly: true },
     { name: "Clients", href: "/clients", icon: Building2, adminOnly: true },
   ];

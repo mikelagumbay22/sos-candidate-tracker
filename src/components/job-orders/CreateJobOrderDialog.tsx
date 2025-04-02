@@ -209,12 +209,16 @@ const CreateJobOrderDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="kickoff sourcing">Kickoff Sourcing</SelectItem>
-                      <SelectItem value="Initial Interview">Initial Interview</SelectItem>
+                      <SelectItem value="Kickoff">Kickoff</SelectItem>
+                      <SelectItem value="Sourcing">Sourcing</SelectItem>
+                      <SelectItem value="Internal Interview">Internal Interview</SelectItem>
+                      <SelectItem value="Internal Assessment">Internal Assessment</SelectItem>
                       <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
+                      <SelectItem value="Client Assessment">Client Assessment</SelectItem>
                       <SelectItem value="Client Interview">Client Interview</SelectItem>
-                      <SelectItem value="Offered">Offered</SelectItem>
-                      <SelectItem value="Hired">Hired</SelectItem>
+                      <SelectItem value="Offer">Offer</SelectItem>
+                      <SelectItem value="Hire">Hire</SelectItem>
+                      <SelectItem value="On-hold">On-hold</SelectItem>
                       <SelectItem value="Canceled">Canceled</SelectItem>
                     </SelectContent>
                   </Select>
