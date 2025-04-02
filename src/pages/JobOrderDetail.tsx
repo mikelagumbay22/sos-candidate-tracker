@@ -15,6 +15,7 @@ import EditJobOrderDialog from "@/components/job-orders/EditJobOrderDialog";
 import AddApplicantDialog from "@/components/job-orders/AddApplicantDialog";
 import EndorseApplicantDialog from "@/components/job-orders/EndorseApplicantDialog";
 import { formatDateToEST } from "@/lib/utils";
+import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -50,6 +51,8 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddApplicantOpen, setIsAddApplicantOpen] = useState(false);
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
+  const [selectedApplicant, setSelectedApplicant] = useState<ApplicantWithDetails | null>(null);
+  const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
   
   useEffect(() => {
     if (id) {
@@ -180,6 +183,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
     };
     
     return statusColors[status] || "bg-gray-100 text-gray-800";
+  };
+  
+  const handleViewResume = (applicant: ApplicantWithDetails) => {
+    setSelectedApplicant(applicant);
+    setIsResumeDialogOpen(true);
   };
   
   if (loading) {
@@ -369,13 +377,14 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Endorse by</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Stage</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Salary</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-center">Endorse by</TableHead>
+                        <TableHead className="text-center">Name</TableHead>
+                        <TableHead className="text-center">Contact</TableHead>
+                        <TableHead className="text-center">Stage</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-center">Salary</TableHead>
+                        <TableHead className="text-center">Resume</TableHead>
+                        <TableHead className="text-right">View/Edit Profiler</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -383,14 +392,14 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                         <TableRow key={applicant.id}>
                           <TableCell>
                             <div>
-                              <p className="font-medium">
+                              <p className="font-medium text-center">
                                 {applicant.author ? 
                                   user?.role === 'administrator' 
                                     ? `${applicant.author.first_name} ${applicant.author.last_name}`
                                     : applicant.author.username
                                   : "N/A"}
                               </p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-sm text-muted-foreground  text-center">
                                 {applicant.created_at ? 
                                   formatDateToEST(applicant.created_at) : 
                                   "N/A"}
@@ -399,42 +408,53 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">
+                              <p className="font-medium  text-center">
                                 {applicant.applicant?.first_name} {applicant.applicant?.last_name}
                               </p>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <p className="text-sm">{applicant.applicant?.email}</p>
+                            <p className="text-sm text-center">{applicant.applicant?.email}</p>
                             {applicant.applicant?.phone && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-muted-foreground text-center">
                                 {applicant.applicant.phone}
                               </p>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <Badge className={getApplicationStageColor(applicant.application_stage)}>
                               {applicant.application_stage}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             <Badge className={getApplicationStatusColor(applicant.application_status)}>
                               {applicant.application_status}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             {applicant.asking_salary ? 
                               `$${applicant.asking_salary.toLocaleString()}` : 
                               'N/A'}
                           </TableCell>
-                          <TableCell className="text-right">
+
+                          <TableCell className="text-center">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleViewResume(applicant)}
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">View Resume</span>
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-center">
                             <Button 
                               variant="ghost" 
                               size="icon"
                               onClick={() => navigate(`/applicants/${applicant.applicant?.id}`)}
                             >
                               <Eye className="h-4 w-4" />
-                              <span className="sr-only">View</span>
+                              <span className="sr-only">View Profile</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -494,6 +514,19 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
               fetchJobOrderApplicants();
             }}
           />
+
+          {selectedApplicant && (
+            <ViewResumeDialog
+              open={isResumeDialogOpen}
+              onOpenChange={setIsResumeDialogOpen}
+              applicantName={`${selectedApplicant.applicant?.first_name} ${selectedApplicant.applicant?.last_name}`}
+              cvLink={selectedApplicant.applicant?.cv_link || null}
+              applicantId={selectedApplicant.applicant?.id || ''}
+              onSuccess={() => {
+                fetchJobOrderApplicants();
+              }}
+            />
+          )}
         </>
       )}
     </div>
