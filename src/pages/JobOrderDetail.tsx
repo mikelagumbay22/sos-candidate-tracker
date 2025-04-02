@@ -29,6 +29,8 @@ import {
   Eye,
   FileText,
   Pencil,
+  Save,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -46,6 +48,15 @@ import {
 import JobOrderApplicantDialog from "@/components/job-orders/JobOrderApplicantDialog";
 import ViewJobDescriptionDialog from "@/components/job-orders/ViewJobDescriptionDialog";
 import ProfilerDialog from "@/components/job-orders/ProfilerDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -88,6 +99,9 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
     null
   );
   const [isProfilerDialogOpen, setIsProfilerDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedApplicant, setEditedApplicant] = useState<ApplicantWithDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -193,7 +207,14 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
         throw error;
       }
 
-      setApplicants(data as ApplicantWithDetails[]);
+      // Sort applicants by first name and last name in ascending order
+      const sortedApplicants = [...(data as ApplicantWithDetails[])].sort((a, b) => {
+        const nameA = `${a.applicant?.first_name || ''} ${a.applicant?.last_name || ''}`.toLowerCase();
+        const nameB = `${b.applicant?.first_name || ''} ${b.applicant?.last_name || ''}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+      setApplicants(sortedApplicants);
     } catch (error) {
       console.error("Error fetching job order applicants:", error);
     }
@@ -209,7 +230,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
       "Client Assessment": "bg-yellow-100 text-yellow-800",
       "Client Interview": "bg-pink-100 text-pink-800",
       Offer: "bg-orange-100 text-orange-800",
-      Hire: "bg-green-100 text-green-800",
+      Hired: "bg-green-100 text-green-800",
       "On-Hold": "bg-gray-100 text-gray-800",
       Cancelled: "bg-red-100 text-red-800",
     };
@@ -220,11 +241,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   const getApplicationStageColor = (stage: string): string => {
     const stageColors: Record<string, string> = {
       Sourced: "bg-cyan-100 text-cyan-800",
-      "Internal interview": "bg-purple-100 text-purple-800",
-      "Internal assessment": "bg-indigo-100 text-indigo-800",
-      "Client endorsement": "bg-amber-100 text-amber-800",
-      "Client assessment": "bg-yellow-100 text-yellow-800",
-      "Client interview": "bg-pink-100 text-pink-800",
+      "Internal Interview": "bg-purple-100 text-purple-800",
+      "Internal Assessment": "bg-indigo-100 text-indigo-800",
+      "Client Endorsement": "bg-amber-100 text-amber-800",
+      "Client Assessment": "bg-yellow-100 text-yellow-800",
+      "Client Interview": "bg-pink-100 text-pink-800",
       Offer: "bg-orange-100 text-orange-800",
       Hire: "bg-green-100 text-green-800",
       "on-hold": "bg-gray-100 text-gray-800",
@@ -252,6 +273,106 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   const handleViewJobDescription = (jobOrder: JobOrder) => {
     setSelectedJobOrder(jobOrder);
     setIsJobDescriptionDialogOpen(true);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedApplicant || !editedApplicant) {
+      console.error("Missing required data:", { selectedApplicant, editedApplicant });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Log the exact data we're sending
+      console.log("Sending update with data:", {
+        id: selectedApplicant.id,
+        application_stage: editedApplicant.application_stage,
+        application_status: editedApplicant.application_status,
+        asking_salary: editedApplicant.asking_salary,
+        client_feedback: editedApplicant.client_feedback,
+        updated_at: new Date().toISOString(),
+      });
+
+      // First, verify the record exists
+      const { data: existingRecord, error: fetchError } = await supabase
+        .from("joborder_applicant")
+        .select("*")
+        .eq("id", selectedApplicant.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching record:", fetchError);
+        throw fetchError;
+      }
+
+      console.log("Found existing record:", existingRecord);
+
+      // Perform the update
+      const { data: updateResult, error: updateError } = await supabase
+        .from("joborder_applicant")
+        .update({
+          application_stage: editedApplicant.application_stage,
+          application_status: editedApplicant.application_status,
+          asking_salary: editedApplicant.asking_salary,
+          client_feedback: editedApplicant.client_feedback,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedApplicant.id)
+        .select();
+
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw updateError;
+      }
+
+      console.log("Update result:", updateResult);
+
+      // Verify the update
+      const { data: verifyRecord, error: verifyError } = await supabase
+        .from("joborder_applicant")
+        .select("*")
+        .eq("id", selectedApplicant.id)
+        .single();
+
+      if (verifyError) {
+        console.error("Error verifying update:", verifyError);
+        throw verifyError;
+      }
+
+      console.log("Verified record after update:", verifyRecord);
+
+      // Update the local state
+      setApplicants(prevApplicants => 
+        prevApplicants.map(applicant => 
+          applicant.id === selectedApplicant.id 
+            ? { ...applicant, ...editedApplicant }
+            : applicant
+        )
+      );
+
+      // Reset states
+      setSelectedApplicant(null);
+      setIsEditing(false);
+      setEditedApplicant(null);
+
+      toast({
+        title: "Success",
+        description: "Applicant details updated successfully!",
+      });
+
+      // Refresh the applicants list
+      await fetchJobOrderApplicants();
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (loading) {
@@ -491,12 +612,6 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                           Salary
                         </TableHead>
                         <TableHead className="text-center  text-white font-bold">
-                          Resume
-                        </TableHead>
-                        <TableHead className="text-center  text-white font-bold">
-                          Profiler
-                        </TableHead>
-                        <TableHead className="text-center  text-white font-bold">
                           Client Feedback
                         </TableHead>
                         <TableHead className="text-center  text-white font-bold">
@@ -542,74 +657,129 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                             )}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge
-                              className={getApplicationStageColor(
-                                applicant.application_stage
+                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                              <Select
+                                value={editedApplicant.application_stage}
+                                onValueChange={(value: "Sourced" | "Interview" | "Assessment" | "Client Endorsement" | "Client Interview" | "Offer" | "Hired") => 
+                                  setEditedApplicant(prev => ({ ...prev, application_stage: value }))
+                                }
+                              >
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Select stage" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Sourced">Sourced</SelectItem>
+                                  <SelectItem value="Internal Interview">Internal Interview </SelectItem>
+                                  <SelectItem value="Internal Assessment">Internal Assessment</SelectItem>
+                                  <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
+                                  <SelectItem value="Client Assessment">Client Assessment</SelectItem>
+                                  <SelectItem value="Client Interview">Client Interview</SelectItem>
+                                  <SelectItem value="Offer">Offer</SelectItem>
+                                  <SelectItem value="Hired">Hired</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge
+                                className={getApplicationStageColor(
+                                  applicant.application_stage
+                                )}
+                              >
+                                {applicant.application_stage}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                              <Select
+                                value={editedApplicant.application_status}
+                                onValueChange={(value: "Pending" | "Pass" | "Fail") => 
+                                  setEditedApplicant(prev => ({ ...prev, application_status: value }))
+                                }
+                              >
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Pending">Pending</SelectItem>
+                                  <SelectItem value="Pass">Pass</SelectItem>
+                                  <SelectItem value="Fail">Fail</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge
+                                className={getApplicationStatusColor(
+                                  applicant.application_status
+                                )}
+                              >
+                                {applicant.application_status}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                              <Input
+                                type="number"
+                                value={editedApplicant.asking_salary || ""}
+                                onChange={(e) => 
+                                  setEditedApplicant(prev => ({ 
+                                    ...prev, 
+                                    asking_salary: e.target.value ? Number(e.target.value) : null 
+                                  }))
+                                }
+                                className="w-[180px]"
+                              />
+                            ) : (
+                              applicant.asking_salary
+                                ? `$${applicant.asking_salary.toLocaleString()}`
+                                : "N/A"
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                              <Textarea
+                                value={editedApplicant.client_feedback || ""}
+                                onChange={(e) => 
+                                  setEditedApplicant(prev => ({ 
+                                    ...prev, 
+                                    client_feedback: e.target.value 
+                                  }))
+                                }
+                                className="w-[180px]"
+                              />
+                            ) : (
+                              applicant.client_feedback || "N/A"
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {isEditing && selectedApplicant?.id === applicant.id ? (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={handleSaveChanges}
+                                  disabled={isLoading}
+                                >
+                                  {isLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Save className="h-4 w-4" />
+                                  )}
+                                  <span className="sr-only">Save Changes</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedApplicant(applicant);
+                                    setEditedApplicant(applicant);
+                                    setIsEditing(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit Status</span>
+                                </Button>
                               )}
-                            >
-                              {applicant.application_stage}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge
-                              className={getApplicationStatusColor(
-                                applicant.application_status
-                              )}
-                            >
-                              {applicant.application_status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {applicant.asking_salary
-                              ? `$${applicant.asking_salary.toLocaleString()}`
-                              : "N/A"}
-                          </TableCell>
-
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleViewResume(applicant)}
-                              >
-                                <FileText className="h-4 w-4" />
-                                <span className="sr-only">View Resume</span>
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setSelectedApplicant(applicant);
-                                  setIsProfilerDialogOpen(true);
-                                }}
-                              >
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View Profiler</span>
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {applicant.client_feedback
-                              ? `$${applicant.client_feedback.toLocaleString()}`
-                              : "N/A"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setSelectedApplicant(applicant);
-                                  setIsProfilerDialogOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit Status</span>
-                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
