@@ -143,7 +143,8 @@ const EndorseApplicantDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Cross-endorse Applicant for {jobOrder.job_title}</DialogTitle>
+          <DialogTitle>Cross-endorse candidate to</DialogTitle>
+          <DialogTitle>{jobOrder.job_title}</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -183,9 +184,9 @@ const EndorseApplicantDialog = ({
                   name="asking_salary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Asking Salary</FormLabel>
+                      <FormLabel>Asking Salary (USD)</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., $80,000" {...field} />
+                        <Input placeholder="Ex: $1,000" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -197,10 +198,10 @@ const EndorseApplicantDialog = ({
                   name="interview_notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Interview Notes</FormLabel>
+                      <FormLabel>Profiler</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Add any initial notes about the applicant..."
+                          placeholder="Add updated profiler"
                           className="resize-y min-h-[100px]"
                           {...field}
                         />
@@ -231,7 +232,7 @@ const EndorseApplicantDialog = ({
                 type="submit" 
                 disabled={isLoading || applicants.length === 0}
               >
-                {isLoading ? "Endorsing..." : "Endorse Applicant"}
+                {isLoading ? "Endorsing..." : "Save"}
               </Button>
             </DialogFooter>
           </form>

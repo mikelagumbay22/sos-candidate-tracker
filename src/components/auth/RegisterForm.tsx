@@ -104,9 +104,9 @@ const RegisterForm = () => {
 
   return (
     <div className="w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create an Account</h2>
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create an account</h2>
       <p className="text-center text-gray-600 mb-8">
-        Register to get started with the Applicant Tracking System
+        
       </p>
       
       {error && (

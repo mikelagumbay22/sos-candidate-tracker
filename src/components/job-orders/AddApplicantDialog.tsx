@@ -295,9 +295,9 @@ const AddApplicantDialog = ({
                   name="asking_salary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Asking Salary</FormLabel>
+                      <FormLabel>Salary (USD)</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., $80,000" {...field} />
+                        <Input placeholder="Ex:$1,000" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -309,10 +309,10 @@ const AddApplicantDialog = ({
                   name="interview_notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Interview Notes</FormLabel>
+                      <FormLabel>Profiler</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Add any initial notes about the applicant..."
+                          placeholder=""
                           className="resize-y min-h-[100px]"
                           {...field}
                         />
@@ -338,7 +338,7 @@ const AddApplicantDialog = ({
                     onClick={onSubmit}
                     disabled={isLoading}
                   >
-                    {isLoading ? "Adding..." : "Add Applicant"}
+                    {isLoading ? "Adding..." : "Save"}
                   </Button>
                 </div>
               </div>

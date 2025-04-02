@@ -30,49 +30,52 @@ const JobOrders = ({ user }: JobOrdersProps) => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     fetchJobOrders();
-    
+
     // Set up real-time subscription
     const jobOrderSubscription = supabase
-      .channel('job-order-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'joborder' }, 
+      .channel("job-order-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "joborder" },
         () => {
           fetchJobOrders();
         }
       )
       .subscribe();
-      
+
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
   }, []);
-  
+
   const fetchJobOrders = async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
         .from("joborder")
-        .select(`
+        .select(
+          `
           *,
           clients(first_name, last_name, company)
-        `)
-        .order('created_at', { ascending: false });
-      
+        `
+        )
+        .order("created_at", { ascending: false });
+
       // Apply status filter if not "all"
       if (statusFilter !== "all") {
-        query = query.eq('status', statusFilter);
+        query = query.eq("status", statusFilter);
       }
-      
+
       const { data, error } = await query;
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Fetch applicant counts for each job order
       const jobOrdersWithCounts = await Promise.all(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -81,14 +84,14 @@ const JobOrders = ({ user }: JobOrdersProps) => {
             .from("joborder_applicant")
             .select("*", { count: "exact", head: true })
             .eq("joborder_id", job.id);
-            
+
           return {
             ...job,
-            applicant_count: count || 0
+            applicant_count: count || 0,
           } as JobOrder;
         })
       );
-      
+
       setJobOrders(jobOrdersWithCounts);
     } catch (error) {
       console.error("Error fetching job orders:", error);
@@ -101,27 +104,27 @@ const JobOrders = ({ user }: JobOrdersProps) => {
       setLoading(false);
     }
   };
-  
+
   const handleCardClick = (jobId: string) => {
     navigate(`/job-orders/${jobId}`);
   };
-  
-  const filteredJobOrders = jobOrders.filter(job => 
+
+  const filteredJobOrders = jobOrders.filter((job) =>
     job.job_title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="flex h-screen">
       <Sidebar user={user} />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header user={user} />
-        
+
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h2 className="text-xl font-semibold">Job Orders</h2>
-              
+
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -132,7 +135,7 @@ const JobOrders = ({ user }: JobOrdersProps) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Select
                     value={statusFilter}
@@ -146,17 +149,25 @@ const JobOrders = ({ user }: JobOrdersProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="kickoff sourcing">Kickoff Sourcing</SelectItem>
-                      <SelectItem value="Initial Interview">Initial Interview</SelectItem>
-                      <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
-                      <SelectItem value="Client Interview">Client Interview</SelectItem>
+                      <SelectItem value="kickoff sourcing">
+                        Kickoff Sourcing
+                      </SelectItem>
+                      <SelectItem value="Initial Interview">
+                        Initial Interview
+                      </SelectItem>
+                      <SelectItem value="Client Endorsement">
+                        Client Endorsement
+                      </SelectItem>
+                      <SelectItem value="Client Interview">
+                        Client Interview
+                      </SelectItem>
                       <SelectItem value="Offered">Offered</SelectItem>
                       <SelectItem value="Hired">Hired</SelectItem>
                       <SelectItem value="Canceled">Canceled</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  {user?.role === 'administrator' && (
+
+                  {user?.role === "administrator" && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       New Job
@@ -165,10 +176,10 @@ const JobOrders = ({ user }: JobOrdersProps) => {
                 </div>
               </div>
             </div>
-            
+
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map(i => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Card key={i} className="h-[200px]">
                     <CardContent className="p-6">
                       <div className="w-2/3 h-6 bg-gray-200 animate-pulse rounded mb-4"></div>
@@ -185,22 +196,22 @@ const JobOrders = ({ user }: JobOrdersProps) => {
             ) : filteredJobOrders.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredJobOrders.map((job) => (
-                  <JobOrderCard 
-                    key={job.id} 
-                    jobOrder={job} 
-                    onClick={() => handleCardClick(job.id)} 
+                  <JobOrderCard
+                    key={job.id}
+                    jobOrder={job}
+                    onClick={() => handleCardClick(job.id)}
                   />
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
-                  {searchTerm || statusFilter !== "all" ? 
-                    "No job orders match your search criteria." : 
-                    "No job orders found. Create your first job order to get started."}
+                  {searchTerm || statusFilter !== "all"
+                    ? "No job orders match your search criteria."
+                    : "No job orders found. Create your first job order to get started."}
                 </p>
-                <Button 
-                  className="mt-4" 
+                <Button
+                  className="mt-4"
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -211,9 +222,9 @@ const JobOrders = ({ user }: JobOrdersProps) => {
           </div>
         </main>
       </div>
-      
-      <CreateJobOrderDialog 
-        open={isCreateDialogOpen} 
+
+      <CreateJobOrderDialog
+        open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onSuccess={() => {
           setIsCreateDialogOpen(false);

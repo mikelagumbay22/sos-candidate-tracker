@@ -113,3 +113,12 @@ export interface AuthFormData {
   password: string;
   confirm_password?: string;
 }
+
+export interface ApplicantWithDetails extends JobOrderApplicant {
+  applicant: Applicant;
+  author: {
+    first_name: string;
+    last_name: string;
+    username: string;
+  };
+}
