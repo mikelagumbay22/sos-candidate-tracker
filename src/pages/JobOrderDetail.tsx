@@ -28,6 +28,7 @@ import {
   Upload,
   Eye,
   FileText,
+  Pencil,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -492,8 +493,14 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                         <TableHead className="text-center  text-white font-bold">
                           Resume
                         </TableHead>
-                        <TableHead className="text-right  text-white font-bold">
+                        <TableHead className="text-center  text-white font-bold">
                           Profiler
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Client Feedback
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Edit
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -582,6 +589,26 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                               >
                                 <Eye className="h-4 w-4" />
                                 <span className="sr-only">View Profiler</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {applicant.client_feedback
+                              ? `$${applicant.client_feedback.toLocaleString()}`
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedApplicant(applicant);
+                                  setIsProfilerDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit Status</span>
                               </Button>
                             </div>
                           </TableCell>
