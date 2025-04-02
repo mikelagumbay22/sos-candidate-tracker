@@ -56,6 +56,7 @@ const EndorseApplicantDialog = ({
       form.reset();
       fetchApplicants();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, form]);
   
   const fetchApplicants = async () => {

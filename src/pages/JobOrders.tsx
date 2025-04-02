@@ -49,6 +49,7 @@ const JobOrders = ({ user }: JobOrdersProps) => {
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchJobOrders = async () => {

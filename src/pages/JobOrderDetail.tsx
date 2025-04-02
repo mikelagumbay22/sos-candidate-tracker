@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import JobOrderApplicantDialog from "@/components/job-orders/JobOrderApplicantDialog";
 import ViewJobDescriptionDialog from "@/components/job-orders/ViewJobDescriptionDialog";
+import ProfilerDialog from "@/components/job-orders/ProfilerDialog";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -85,6 +86,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   const [selectedJobOrder, setSelectedJobOrder] = useState<JobOrder | null>(
     null
   );
+  const [isProfilerDialogOpen, setIsProfilerDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -491,7 +493,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                           Resume
                         </TableHead>
                         <TableHead className="text-right  text-white font-bold">
-                          View/Edit Profiler
+                          Profiler
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -575,11 +577,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                                 size="icon"
                                 onClick={() => {
                                   setSelectedApplicant(applicant);
-                                  setIsApplicantDialogOpen(true);
+                                  setIsProfilerDialogOpen(true);
                                 }}
                               >
                                 <Eye className="h-4 w-4" />
-                                <span className="sr-only">View Details</span>
+                                <span className="sr-only">View Profiler</span>
                               </Button>
                             </div>
                           </TableCell>
@@ -597,7 +599,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                       onClick={() => setIsAddApplicantOpen(true)}
                     >
                       <UserPlus className="h-4 w-4 mr-1" />
-                      Add First Applicant
+                      Add First Candidate
                     </Button>
                   </div>
                 )}
@@ -679,6 +681,15 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
               user={user}
             />
           )}
+
+          <ProfilerDialog
+            open={isProfilerDialogOpen}
+            onOpenChange={setIsProfilerDialogOpen}
+            applicant={selectedApplicant}
+            onSuccess={() => {
+              fetchJobOrderApplicants();
+            }}
+          />
         </>
       )}
     </div>

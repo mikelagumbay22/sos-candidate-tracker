@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format, toZonedTime } from "date-fns-tz";
 
 interface AddApplicantDialogProps {
   open: boolean;
@@ -51,7 +52,7 @@ const AddApplicantDialog = ({
   onSuccess 
 }: AddApplicantDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("applicant-info");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
   const applicantForm = useForm<z.infer<typeof applicantFormSchema>>({
     resolver: zodResolver(applicantFormSchema),
@@ -83,9 +84,74 @@ const AddApplicantDialog = ({
       application_stage: "Sourced",
       application_status: "Pending",
     });
-    setActiveTab("applicant-info");
   };
   
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadedFile) {
+      toast({
+        title: "Error",
+        description: "Please select a file to upload.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Format timestamp in EST timezone
+      const now = new Date();
+      const estDate = toZonedTime(now, "America/New_York");
+      const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
+
+      // Create file path and name
+      const fileExt = uploadedFile.name.split('.').pop();
+      const sanitizedName = `${applicantForm.getValues('first_name')} ${applicantForm.getValues('last_name')}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+      const fileName = `${timestamp}.${fileExt}`;
+      const filePath = `${sanitizedName}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, uploadedFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(uploadError.message);
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+
+      // Update the form with the URL
+      applicantForm.setValue('cv_link', publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Resume uploaded successfully!",
+      });
+    } catch (error) {
+      console.error("Error uploading resume:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const onSubmit = async () => {
     if (!user) {
       toast({
@@ -104,17 +170,46 @@ const AddApplicantDialog = ({
       const applicationData = await applicationForm.trigger();
       
       if (!applicantData || !applicationData) {
-        // Switch to the tab with validation errors
-        if (!applicantData) {
-          setActiveTab("applicant-info");
-        } else {
-          setActiveTab("job-info");
-        }
         return;
       }
       
       const applicantValues = applicantForm.getValues();
       const applicationValues = applicationForm.getValues();
+      
+      let cvLink = null;
+      
+      // Upload resume if file is selected
+      if (uploadedFile) {
+        // Format timestamp in EST timezone
+        const now = new Date();
+        const estDate = toZonedTime(now, "America/New_York");
+        const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
+
+        // Create file path and name
+        const fileExt = uploadedFile.name.split('.').pop();
+        const sanitizedName = `${applicantValues.first_name} ${applicantValues.last_name}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+        const fileName = `${timestamp}.${fileExt}`;
+        const filePath = `${sanitizedName}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('resumes')
+          .upload(filePath, uploadedFile, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw new Error(uploadError.message);
+        }
+
+        // Get the public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(filePath);
+
+        cvLink = publicUrl;
+      }
       
       // 1. Create the applicant
       const { data: applicantResult, error: applicantError } = await supabase
@@ -125,7 +220,7 @@ const AddApplicantDialog = ({
           email: applicantValues.email,
           phone: applicantValues.phone || null,
           location: applicantValues.location || null,
-          cv_link: applicantValues.cv_link || null,
+          cv_link: cvLink,
           author_id: user.id,
         })
         .select("id")
@@ -159,6 +254,7 @@ const AddApplicantDialog = ({
       
       onSuccess();
       resetForms();
+      onOpenChange(false);
     } catch (error) {
       console.error("Error adding applicant:", error);
       toast({
@@ -181,170 +277,142 @@ const AddApplicantDialog = ({
           <DialogTitle>Add New Applicant</DialogTitle>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="applicant-info">Applicant Info</TabsTrigger>
-            <TabsTrigger value="job-info">Job Info</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="applicant-info">
-            <Form {...applicantForm}>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={applicantForm.control}
-                    name="first_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name*</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={applicantForm.control}
-                    name="last_name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name*</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={applicantForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email*</FormLabel>
-                      <FormControl>
-                        <Input type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicantForm.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicantForm.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="City, Country" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicantForm.control}
-                  name="cv_link"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CV/Resume Link</FormLabel>
-                      <FormControl>
-                        <Input type="url" placeholder="https://..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={() => setActiveTab("job-info")}
-                >
-                  Next
-                </Button>
-              </div>
-            </Form>
-          </TabsContent>
-          
-          <TabsContent value="job-info">
-            <Form {...applicationForm}>
-              <div className="space-y-4">
-                <FormField
-                  control={applicationForm.control}
-                  name="asking_salary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Salary (USD)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex:$1,000" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={applicationForm.control}
-                  name="interview_notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profiler</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder=""
-                          className="resize-y min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setActiveTab("applicant-info")}
-                  >
-                    Back
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    className="flex-1"
-                    onClick={onSubmit}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Adding..." : "Save"}
-                  </Button>
-                </div>
-              </div>
-            </Form>
-          </TabsContent>
-        </Tabs>
+        <Form {...applicantForm}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={applicantForm.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name*</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={applicantForm.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name*</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <FormField
+              control={applicantForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email*</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={applicantForm.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={applicantForm.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="City, Country" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={applicantForm.control}
+              name="cv_link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CV/Resume</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                      />
+                      {uploadedFile && (
+                        <p className="text-sm text-muted-foreground">
+                          Resume will be uploaded when you save
+                        </p>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </Form>
+
+        <Form {...applicationForm}>
+          <div className="space-y-4">
+            <FormField
+              control={applicationForm.control}
+              name="asking_salary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Salary (USD)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex:$1,000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={applicationForm.control}
+              name="interview_notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profiler</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder=""
+                      className="resize-y min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </Form>
         
         <DialogFooter className="pt-2">
           <Button
@@ -357,6 +425,13 @@ const AddApplicantDialog = ({
             disabled={isLoading}
           >
             Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? "Adding..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -57,6 +57,7 @@ const Users = ({ user }: UsersProps) => {
 
   useEffect(() => {
     fetchUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]); // Add user as a dependency
 
   if (loading) {
