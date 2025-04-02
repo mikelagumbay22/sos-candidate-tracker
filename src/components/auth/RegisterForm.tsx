@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signUp, generateUsername, insertUserData } from "@/lib/supabase";
@@ -93,10 +92,12 @@ const RegisterForm = () => {
         // Redirect to login page
         navigate("/login");
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Registration error:", err);
-      setError(err.message || "An unexpected error occurred. Please try again.");
+      setError(
+        err.message || "An unexpected error occurred. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -104,17 +105,17 @@ const RegisterForm = () => {
 
   return (
     <div className="w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create an account</h2>
-      <p className="text-center text-gray-600 mb-8">
-        
-      </p>
-      
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+        Create an account
+      </h2>
+      <p className="text-center text-gray-600 mb-8"></p>
+
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -132,7 +133,7 @@ const RegisterForm = () => {
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="last_name">Last Name</Label>
             <div className="relative">
@@ -149,7 +150,7 @@ const RegisterForm = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
@@ -166,7 +167,7 @@ const RegisterForm = () => {
             />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -177,7 +178,6 @@ const RegisterForm = () => {
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleChange}
-              placeholder="••••••••"
               required
               className="pl-10"
             />
@@ -194,7 +194,7 @@ const RegisterForm = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="confirm_password">Confirm Password</Label>
           <div className="relative">
@@ -205,7 +205,6 @@ const RegisterForm = () => {
               type={showConfirmPassword ? "text" : "password"}
               value={formData.confirm_password}
               onChange={handleChange}
-              placeholder="••••••••"
               required
               className="pl-10"
             />
@@ -222,21 +221,26 @@ const RegisterForm = () => {
             </button>
           </div>
         </div>
-        
+
         <p className="text-xs text-gray-500">
-          Your username will be automatically generated (e.g. Recruiter01, Recruiter02)
+          Your username will be automatically generated (e.g. Recruiter01,
+          Recruiter02)
         </p>
-        
-        <Button type="submit" className="w-full mt-2" disabled={loading}>
+
+        <Button
+          type="submit"
+          className="w-full mt-2 bg-[#A74D4A] hover:bg-[#A74D4A]/90"
+          disabled={loading}
+        >
           {loading ? "Creating Account..." : "Create Account"}
         </Button>
       </form>
-      
+
       <p className="mt-6 text-center text-sm">
         Already have an account?{" "}
-        <Link 
-          to="/login" 
-          className="font-medium text-ats-blue-600 hover:text-ats-blue-800"
+        <Link
+          to="/login"
+          className="font-medium text-[#A74D4A] hover:text-[#A74D4A]/90"
         >
           Sign in instead
         </Link>

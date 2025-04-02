@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signIn } from "@/lib/supabase";
@@ -32,7 +31,7 @@ const LoginForm = () => {
 
     try {
       const { error } = await signIn(formData.email, formData.password);
-      
+
       if (error) {
         setError(error.message);
         return;
@@ -53,20 +52,21 @@ const LoginForm = () => {
 
   const handleForgotPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email) {
       setError("Please enter your email address first.");
       return;
     }
-    
+
     setLoading(true);
     try {
       const { error } = await signIn(formData.email, formData.password);
-      
+
       if (error) {
         toast({
           title: "Password Reset Email Sent",
-          description: "Please check your inbox for password reset instructions.",
+          description:
+            "Please check your inbox for password reset instructions.",
         });
       }
     } catch (err) {
@@ -78,17 +78,19 @@ const LoginForm = () => {
 
   return (
     <div className="w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Sign In</h2>
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+        Sign In
+      </h2>
       <p className="text-center text-gray-600 mb-8">
         Enter your credentials to access your account
       </p>
-      
+
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -106,13 +108,13 @@ const LoginForm = () => {
             />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <div className="flex justify-between">
             <Label htmlFor="password">Password</Label>
-            <button 
+            <button
               onClick={handleForgotPassword}
-              className="text-sm text-ats-blue-600 hover:text-ats-blue-800"
+              className="text-sm text-[#A74D4A] hover:text-[#A74D4A]/90"
             >
               Forgot password?
             </button>
@@ -123,7 +125,6 @@ const LoginForm = () => {
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
               required
@@ -142,17 +143,21 @@ const LoginForm = () => {
             </button>
           </div>
         </div>
-        
-        <Button type="submit" className="w-full" disabled={loading}>
+
+        <Button
+          type="submit"
+          className="w-full bg-[#A74D4A] hover:bg-[#A74D4A]/90"
+          disabled={loading}
+        >
           {loading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
-      
+
       <p className="mt-6 text-center text-sm">
         Don't have an account?{" "}
-        <Link 
-          to="/register" 
-          className="font-medium text-ats-blue-600 hover:text-ats-blue-800"
+        <Link
+          to="/register"
+          className="font-medium text-[#A74D4A] hover:text-[#A74D4A]/90"
         >
           Register now
         </Link>
