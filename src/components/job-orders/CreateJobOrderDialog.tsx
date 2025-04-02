@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -37,7 +36,7 @@ const formSchema = z.object({
   job_title: z.string().min(3, { message: "Job title must be at least 3 characters" }),
   client_id: z.string().min(1, { message: "Please select a client" }),
   status: z.string().min(1, { message: "Please select a status" }),
-  responsibilities_requirements: z.string().optional(),
+  job_description: z.any().optional(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
 });
@@ -50,14 +49,15 @@ const CreateJobOrderDialog = ({
 }: CreateJobOrderDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       job_title: "",
       client_id: "",
-      status: "kickoff sourcing",
-      responsibilities_requirements: "",
+      status: "Kickoff",
+      job_description: null,
       schedule: "",
       client_budget: "",
     },
@@ -105,12 +105,32 @@ const CreateJobOrderDialog = ({
     try {
       setIsLoading(true);
       
+      let jobDescriptionUrl = null;
+      
+      if (uploadedFile) {
+        const fileExt = uploadedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('job-descriptions')
+          .upload(filePath, uploadedFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('job-descriptions')
+          .getPublicUrl(filePath);
+
+        jobDescriptionUrl = publicUrl;
+      }
+      
       const { error } = await supabase.from("joborder").insert({
         job_title: values.job_title,
         client_id: values.client_id,
         author_id: user.id,
         status: values.status,
-        responsibilities_requirements: values.responsibilities_requirements || null,
+        job_description: jobDescriptionUrl,
         schedule: values.schedule || null,
         client_budget: values.client_budget || null,
       });
@@ -124,6 +144,7 @@ const CreateJobOrderDialog = ({
       
       onSuccess();
       form.reset();
+      setUploadedFile(null);
     } catch (error) {
       console.error("Error creating job order:", error);
       toast({
@@ -229,51 +250,60 @@ const CreateJobOrderDialog = ({
             
             <FormField
               control={form.control}
-              name="responsibilities_requirements"
+              name="job_description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Responsibilities & Requirements</FormLabel>
+                  <FormLabel>Job Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter job responsibilities and requirements..."
-                      className="resize-y min-h-[100px]" 
-                      {...field} 
-                    />
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setUploadedFile(file);
+                            field.onChange(file);
+                          }
+                        }}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Upload a PDF or Word document containing the job description
+                      </p>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="schedule"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Schedule</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Full-time, Remote" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="client_budget"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Client Budget</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., $100,000 - $120,000" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="schedule"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Schedule</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Full-time, Remote" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="client_budget"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Budget</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., $100,000 - $120,000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <DialogFooter>
               <Button

@@ -37,8 +37,8 @@ export interface JobOrder {
   created_at: string;
   updated_at?: string | null;
   schedule?: string;
-  status: 'kickoff sourcing' | 'Initial Interview' | 'Client Endorsement' | 'Client Interview' | 'Offered' | 'Hired' | 'Canceled';
-  responsibilities_requirements?: string;
+  status: 'kickoff' | 'Sourcing' | 'Internal Interview' | 'Internal Assessment' | 'Client Endorsement' | 'Client Assessment' | 'Client Interview' | 'Offer' | 'Hire' | 'On-hold' | 'Canceled';
+  job_description?: string;
   client_budget?: string;
   // Additional properties for UI
   applicant_count?: number;

@@ -12,20 +12,22 @@ interface JobOrderCardProps {
 const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
   const getStatusColor = (status: string): string => {
     const statusColors: Record<string, string> = {
-      kickoff: "bg-[#A74D4A] text-white",
-      sourcing: "bg-cyan-100 text-cyan-800",
-      "internal interview": "bg-purple-100 text-purple-800",
-      "internal assessment": "bg-indigo-100 text-indigo-800",
-      "client endorsement": "bg-amber-100 text-amber-800",
-      "client assessment": "bg-yellow-100 text-yellow-800",
-      "client interview": "bg-pink-100 text-pink-800",
-      offer: "bg-orange-100 text-orange-800",
-      hire: "bg-green-100 text-green-800",
-      "on-hold": "bg-gray-100 text-gray-800",
-      cancelled: "bg-red-100 text-red-800",
+      Kickoff: "bg-[#A74D4A] text-white",
+      Sourcing: "bg-cyan-100 text-cyan-800",
+      "Internal Interview": "bg-purple-100 text-purple-800",
+      "Internal Assessment": "bg-indigo-100 text-indigo-800",
+      "Client Endorsement": "bg-amber-100 text-amber-800",
+      "Client Assessment": "bg-yellow-100 text-yellow-800",
+      "Client Interview": "bg-pink-100 text-pink-800",
+      Offer: "bg-orange-100 text-orange-800",
+      Hire: "bg-green-100 text-green-800",
+      "On-hold": "bg-gray-100 text-gray-800",
+      Canceled: "bg-red-100 text-red-800",
     };
 
-    return statusColors[status] || "bg-gray-100 text-gray-800";
+    const color = statusColors[status] || "bg-gray-100 text-gray-800";
+    console.log("Status:", status, "Color:", color);
+    return color;
   };
 
   const formattedDate = jobOrder.created_at

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -10,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { format, toZonedTime } from "date-fns-tz";
 
 interface EditJobOrderDialogProps {
   open: boolean;
@@ -29,7 +28,7 @@ interface EditJobOrderDialogProps {
 const formSchema = z.object({
   job_title: z.string().min(3, { message: "Job title must be at least 3 characters" }),
   status: z.string().min(1, { message: "Please select a status" }),
-  responsibilities_requirements: z.string().optional(),
+  job_description: z.any().optional(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
 });
@@ -41,13 +40,14 @@ const EditJobOrderDialog = ({
   onSuccess 
 }: EditJobOrderDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       job_title: jobOrder.job_title || "",
-      status: jobOrder.status || "kickoff sourcing",
-      responsibilities_requirements: jobOrder.responsibilities_requirements || "",
+      status: jobOrder.status || "Kickoff",
+   
       schedule: jobOrder.schedule || "",
       client_budget: jobOrder.client_budget || "",
     },
@@ -57,8 +57,8 @@ const EditJobOrderDialog = ({
     if (open && jobOrder) {
       form.reset({
         job_title: jobOrder.job_title || "",
-        status: jobOrder.status || "kickoff sourcing",
-        responsibilities_requirements: jobOrder.responsibilities_requirements || "",
+        status: jobOrder.status || "Kickoff",
+     
         schedule: jobOrder.schedule || "",
         client_budget: jobOrder.client_budget || "",
       });
@@ -69,12 +69,47 @@ const EditJobOrderDialog = ({
     try {
       setIsLoading(true);
       
+      let jobDescriptionUrl = jobOrder.job_description;
+      
+      if (uploadedFile) {
+        // Format timestamp in EST timezone
+        const now = new Date();
+        const estDate = toZonedTime(now, "America/New_York");
+        const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
+
+        // Create file path and name
+        const fileExt = uploadedFile.name.split('.').pop();
+        const sanitizedName = jobOrder.job_title.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+        const folderPath = `${sanitizedName} (${jobOrder.id})`;
+        const fileName = `${timestamp}.${fileExt}`;
+        const filePath = `${folderPath}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('job-descriptions')
+          .upload(filePath, uploadedFile, {
+            cacheControl: '3600',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw new Error(uploadError.message);
+        }
+
+        // Get the public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('job-descriptions')
+          .getPublicUrl(filePath);
+
+        jobDescriptionUrl = publicUrl;
+      }
+      
       const { error } = await supabase
         .from("joborder")
         .update({
           job_title: values.job_title,
           status: values.status,
-          responsibilities_requirements: values.responsibilities_requirements || null,
+          job_description: jobDescriptionUrl,
           schedule: values.schedule || null,
           client_budget: values.client_budget || null,
           updated_at: new Date().toISOString()
@@ -93,7 +128,7 @@ const EditJobOrderDialog = ({
       console.error("Error updating job order:", error);
       toast({
         title: "Error",
-        description: "Failed to update job order. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to update job order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -132,7 +167,7 @@ const EditJobOrderDialog = ({
                   <FormLabel>Status</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -140,12 +175,16 @@ const EditJobOrderDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="kickoff sourcing">Kickoff Sourcing</SelectItem>
-                      <SelectItem value="Initial Interview">Initial Interview</SelectItem>
+                      <SelectItem value="Kickoff">Kickoff</SelectItem>
+                      <SelectItem value="Sourcing">Sourcing</SelectItem>
+                      <SelectItem value="Internal Interview">Internal Interview</SelectItem>
+                      <SelectItem value="Internal Assessment">Internal Assessment</SelectItem>
                       <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
+                      <SelectItem value="Client Assessment">Client Assessment</SelectItem>
                       <SelectItem value="Client Interview">Client Interview</SelectItem>
-                      <SelectItem value="Offered">Offered</SelectItem>
-                      <SelectItem value="Hired">Hired</SelectItem>
+                      <SelectItem value="Offer">Offer</SelectItem>
+                      <SelectItem value="Hire">Hire</SelectItem>
+                      <SelectItem value="On-hold">On-hold</SelectItem>
                       <SelectItem value="Canceled">Canceled</SelectItem>
                     </SelectContent>
                   </Select>
@@ -156,15 +195,27 @@ const EditJobOrderDialog = ({
             
             <FormField
               control={form.control}
-              name="responsibilities_requirements"
+              name="job_description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Responsibilities & Requirements</FormLabel>
+                  <FormLabel>Job Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      className="resize-y min-h-[100px]" 
-                      {...field} 
-                    />
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setUploadedFile(file);
+                            field.onChange(file);
+                          }
+                        }}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Upload a PDF or Word document containing the job description
+                      </p>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

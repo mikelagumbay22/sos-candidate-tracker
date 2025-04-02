@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { User, JobOrder, JobOrderApplicant, Applicant, ApplicantWithDetails } from "@/types";
+import {
+  User,
+  JobOrder,
+  JobOrderApplicant,
+  Applicant,
+  ApplicantWithDetails,
+} from "@/types";
 import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -37,6 +43,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import JobOrderApplicantDialog from "@/components/job-orders/JobOrderApplicantDialog";
+import ViewJobDescriptionDialog from "@/components/job-orders/ViewJobDescriptionDialog";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -73,6 +80,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
     useState<ApplicantWithDetails | null>(null);
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
   const [isApplicantDialogOpen, setIsApplicantDialogOpen] = useState(false);
+  const [isJobDescriptionDialogOpen, setIsJobDescriptionDialogOpen] =
+    useState(false);
+  const [selectedJobOrder, setSelectedJobOrder] = useState<JobOrder | null>(
+    null
+  );
 
   useEffect(() => {
     if (id) {
@@ -117,6 +129,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
         supabase.removeChannel(applicantsSubscription);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchJobOrderDetails = async () => {
@@ -185,13 +198,17 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
 
   const getStatusColor = (status: string): string => {
     const statusColors: Record<string, string> = {
-      "kickoff sourcing": "bg-blue-100 text-blue-800",
-      "Initial Interview": "bg-purple-100 text-purple-800",
+      Kickoff: "bg-[#A74D4A] text-white",
+      Sourcing: "bg-cyan-100 text-cyan-800",
+      "Internal Interview": "bg-purple-100 text-purple-800",
+      "Internal Assessment": "bg-indigo-100 text-indigo-800",
       "Client Endorsement": "bg-amber-100 text-amber-800",
+      "Client Assessment": "bg-yellow-100 text-yellow-800",
       "Client Interview": "bg-pink-100 text-pink-800",
-      Offered: "bg-orange-100 text-orange-800",
-      Hired: "bg-green-100 text-green-800",
-      Canceled: "bg-red-100 text-red-800",
+      Offer: "bg-orange-100 text-orange-800",
+      Hire: "bg-green-100 text-green-800",
+      "On-Hold": "bg-gray-100 text-gray-800",
+      Cancelled: "bg-red-100 text-red-800",
     };
 
     return statusColors[status] || "bg-gray-100 text-gray-800";
@@ -199,13 +216,16 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
 
   const getApplicationStageColor = (stage: string): string => {
     const stageColors: Record<string, string> = {
-      Sourced: "bg-gray-100 text-gray-800",
-      Interview: "bg-blue-100 text-blue-800",
-      Assessment: "bg-purple-100 text-purple-800",
-      "Client Endorsement": "bg-amber-100 text-amber-800",
-      "Client Interview": "bg-pink-100 text-pink-800",
+      Sourced: "bg-cyan-100 text-cyan-800",
+      "Internal interview": "bg-purple-100 text-purple-800",
+      "Internal assessment": "bg-indigo-100 text-indigo-800",
+      "Client endorsement": "bg-amber-100 text-amber-800",
+      "Client assessment": "bg-yellow-100 text-yellow-800",
+      "Client interview": "bg-pink-100 text-pink-800",
       Offer: "bg-orange-100 text-orange-800",
-      Hired: "bg-green-100 text-green-800",
+      Hire: "bg-green-100 text-green-800",
+      "on-hold": "bg-gray-100 text-gray-800",
+      cancelled: "bg-red-100 text-red-800",
     };
 
     return stageColors[stage] || "bg-gray-100 text-gray-800";
@@ -224,6 +244,11 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   const handleViewResume = (applicant: ApplicantWithDetails) => {
     setSelectedApplicant(applicant);
     setIsResumeDialogOpen(true);
+  };
+
+  const handleViewJobDescription = (jobOrder: JobOrder) => {
+    setSelectedJobOrder(jobOrder);
+    setIsJobDescriptionDialogOpen(true);
   };
 
   if (loading) {
@@ -350,20 +375,23 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                       <p>{jobOrder.client_budget || "Not specified"}</p>
                     </div>
                   </div>
-
-                  {jobOrder.responsibilities_requirements && (
-                    <div className="mt-6">
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Job Description "eye"
-                      </p>
-                      <p className="whitespace-pre-line">
-                        {jobOrder.responsibilities_requirements}
-                      </p>
+                  <div className="mt-6">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">
+                      Job Description
+                    </p>
+                    <div className="flex justify-start gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleViewJobDescription(jobOrder)}
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span className="sr-only">View Job Description</span>
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
-
               {user?.role === "administrator" && (
                 <Card>
                   <CardHeader>
@@ -421,6 +449,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                 <CardTitle className="text-lg">Candidates</CardTitle>
                 <div className="flex gap-2">
                   <Button
+                    className="bg-[#EAE6E1] text-black font-bold"
                     variant="outline"
                     size="sm"
                     onClick={() => setIsEndorseOpen(true)}
@@ -438,18 +467,30 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
               <CardContent>
                 {applicants.length > 0 ? (
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-[#A74D4A] text-white font-bold">
                       <TableRow>
-                        <TableHead className="text-start">
+                        <TableHead className="text-start  text-white font-bold">
                           Endorsed by
                         </TableHead>
-                        <TableHead className="text-start">Name</TableHead>
-                        <TableHead className="text-start">Contact</TableHead>
-                        <TableHead className="text-center">Stage</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-center">Salary</TableHead>
-                        <TableHead className="text-center">Resume</TableHead>
-                        <TableHead className="text-right">
+                        <TableHead className="text-start  text-white font-bold">
+                          Name
+                        </TableHead>
+                        <TableHead className="text-start  text-white font-bold">
+                          Contact
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Stage
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Status
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Salary
+                        </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Resume
+                        </TableHead>
+                        <TableHead className="text-right  text-white font-bold">
                           View/Edit Profiler
                         </TableHead>
                       </TableRow>
@@ -622,6 +663,20 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
               onSuccess={() => {
                 fetchJobOrderApplicants();
               }}
+            />
+          )}
+
+          {selectedJobOrder && (
+            <ViewJobDescriptionDialog
+              open={isJobDescriptionDialogOpen}
+              onOpenChange={setIsJobDescriptionDialogOpen}
+              jobTitle={selectedJobOrder.job_title}
+              jobDescriptionLink={selectedJobOrder.job_description}
+              jobOrderId={selectedJobOrder.id}
+              onSuccess={() => {
+                fetchJobOrderDetails();
+              }}
+              user={user}
             />
           )}
         </>
