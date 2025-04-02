@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog";
+import CreateApplicantDialog from "@/components/candidates/CreateApplicantDialog";
 import { formatDateToEST } from "@/lib/utils";
 
 interface ApplicantsProps {

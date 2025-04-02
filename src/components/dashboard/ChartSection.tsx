@@ -62,6 +62,7 @@ const ChartSection = () => {
         if (!statusError && statusData) {
           // Process the data to get counts by status
           const statusCounts: Record<string, number> = {};
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           statusData.forEach((item: any) => {
             const status = item.status;
             statusCounts[status] = (statusCounts[status] || 0) + 1;
@@ -88,6 +89,7 @@ const ChartSection = () => {
         if (!applicantsError && applicantsData) {
           // For each job order, we need to get the count of applicants
           const jobApplicantCounts = await Promise.all(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             applicantsData.map(async (job: any) => {
               const { count } = await supabase
                 .from("joborder_applicant")
