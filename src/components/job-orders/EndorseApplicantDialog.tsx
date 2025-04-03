@@ -5,8 +5,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { JobOrder, User, Applicant } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -33,18 +46,20 @@ const formSchema = z.object({
   interview_notes: z.string().optional(),
 });
 
-const EndorseApplicantDialog = ({ 
-  open, 
-  onOpenChange, 
+const EndorseApplicantDialog = ({
+  open,
+  onOpenChange,
   jobOrder,
   user,
-  onSuccess 
+  onSuccess,
 }: EndorseApplicantDialogProps) => {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(
+    null
+  );
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,34 +68,35 @@ const EndorseApplicantDialog = ({
       interview_notes: "",
     },
   });
-  
+
   useEffect(() => {
     if (open) {
       form.reset();
       fetchApplicants();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, form]);
-  
+
   const fetchApplicants = async () => {
     try {
       setIsLoading(true);
-      
+
       // Get existing applicants associated with this job order
       const { data: existingApplicantIds } = await supabase
         .from("joborder_applicant")
         .select("applicant_id")
         .eq("joborder_id", jobOrder.id);
-      
-      const existingIds = existingApplicantIds?.map(item => item.applicant_id) || [];
-      
+
+      const existingIds =
+        existingApplicantIds?.map((item) => item.applicant_id) || [];
+
       // Fetch all candidates that are not already associated with this job order
       const { data, error } = await supabase
         .from("applicants")
         .select("*")
-        .not("id", "in", `(${existingIds.join(',')})`)
+        .not("id", "in", `(${existingIds.join(",")})`)
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       setApplicants(data || []);
     } catch (error) {
@@ -94,7 +110,7 @@ const EndorseApplicantDialog = ({
       setIsLoading(false);
     }
   };
-  
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
       toast({
@@ -104,31 +120,30 @@ const EndorseApplicantDialog = ({
       });
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
-      const { error } = await supabase
-        .from("joborder_applicant")
-        .insert({
-          joborder_id: jobOrder.id,
-          client_id: jobOrder.client_id,
-          applicant_id: values.applicant_id,
-          author_id: user.id,
-          application_stage: "Sourced",
-          application_status: "Pending",
-          asking_salary: values.asking_salary ? 
-            Number(values.asking_salary.replace(/[^0-9]/g, '')) : null,
-          interview_notes: values.interview_notes || null,
-        });
-      
+
+      const { error } = await supabase.from("joborder_applicant").insert({
+        joborder_id: jobOrder.id,
+        client_id: jobOrder.client_id,
+        applicant_id: values.applicant_id,
+        author_id: user.id,
+        application_stage: "Sourced",
+        application_status: "Pending",
+        asking_salary: values.asking_salary
+          ? Number(values.asking_salary.replace(/[^0-9]/g, ""))
+          : null,
+        interview_notes: values.interview_notes || null,
+      });
+
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: "Candidate endorsed successfully!",
       });
-      
+
       onSuccess();
       form.reset();
     } catch (error) {
@@ -142,7 +157,7 @@ const EndorseApplicantDialog = ({
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -158,12 +173,14 @@ const EndorseApplicantDialog = ({
                 <FormItem>
                   <FormLabel>Select Candidate</FormLabel>
                   <div className="flex gap-2">
-                    <Select 
+                    <Select
                       onValueChange={(value) => {
                         field.onChange(value);
-                        const applicant = applicants.find(a => a.id === value);
+                        const applicant = applicants.find(
+                          (a) => a.id === value
+                        );
                         setSelectedApplicant(applicant || null);
-                      }} 
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -174,7 +191,8 @@ const EndorseApplicantDialog = ({
                       <SelectContent>
                         {applicants.map((applicant) => (
                           <SelectItem key={applicant.id} value={applicant.id}>
-                            {applicant.first_name} {applicant.last_name} - {applicant.email}
+                            {applicant.first_name} {applicant.last_name} -{" "}
+                            {applicant.email}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -226,7 +244,7 @@ const EndorseApplicantDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
               <Button
                 type="button"
@@ -236,8 +254,8 @@ const EndorseApplicantDialog = ({
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading || applicants.length === 0}
               >
                 {isLoading ? "Endorsing..." : "Save"}

@@ -274,7 +274,7 @@ const AddApplicantDialog = ({
     }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Applicant</DialogTitle>
+          <DialogTitle>Add New Candidate</DialogTitle>
         </DialogHeader>
         
         <Form {...applicantForm}>
