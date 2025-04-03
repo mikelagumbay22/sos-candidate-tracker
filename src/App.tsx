@@ -3,7 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { supabase } from "./lib/supabase";
 import { User } from "./types";
 import { toast } from "@/components/ui/use-toast";
@@ -119,7 +124,11 @@ const App = () => {
   }, []);
 
   // Auth guard component
-  const ProtectedRouteComponent = ({ children }: { children: React.ReactNode }) => {
+  const ProtectedRouteComponent = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => {
     if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
