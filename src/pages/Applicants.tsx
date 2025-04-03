@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog";
-import EditApplicantDialog from "@/components/applicants/EditApplicantDialog";
+import CreateApplicantDialog from "@/components/Applicants/CreateApplicantDialog";
+import EditApplicantDialog from "@/components/Applicants/EditApplicantDialog";
 import { formatDateToEST } from "@/lib/utils";
 import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
-import ApplicantJobOrdersDialog from "@/components/applicants/ApplicantJobOrdersDialog";
+import ApplicantJobOrdersDialog from "@/components/Applicants/ApplicantJobOrdersDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Applicants() {
