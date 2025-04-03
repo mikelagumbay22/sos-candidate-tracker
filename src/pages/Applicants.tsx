@@ -190,11 +190,9 @@ const Applicants = ({ user }: ApplicantsProps) => {
                       <TableHead className="text-white">Resume</TableHead>
                       <TableHead className="text-white">Added By</TableHead>
                       <TableHead className="text-white">Jobs</TableHead>
-                      {user?.role === "administrator" && (
-                        <TableHead className="text-center text-white">
-                          Actions
-                        </TableHead>
-                      )}
+                      <TableHead className="text-center text-white">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
