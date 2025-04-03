@@ -62,6 +62,8 @@ const EndorseApplicantDialog = ({
     null
   );
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
+  const [jobOrderSearch, setJobOrderSearch] = useState("");
+  const [applicantSearch, setApplicantSearch] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -154,6 +156,19 @@ const EndorseApplicantDialog = ({
     }
   };
 
+  // Filter job orders based on search
+  const filteredJobOrders = jobOrders.filter((jobOrder) =>
+    jobOrder.job_title.toLowerCase().includes(jobOrderSearch.toLowerCase())
+  );
+
+  // Filter applicants based on search
+  const filteredApplicants = applicants.filter(
+    (applicant) =>
+      applicant.first_name.toLowerCase().includes(applicantSearch.toLowerCase()) ||
+      applicant.last_name.toLowerCase().includes(applicantSearch.toLowerCase()) ||
+      applicant.email.toLowerCase().includes(applicantSearch.toLowerCase())
+  );
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
       toast({
@@ -233,9 +248,17 @@ const EndorseApplicantDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {jobOrders.map((jobOrder) => (
+                      <div className="p-2">
+                        <Input
+                          placeholder="Search job orders..."
+                          value={jobOrderSearch}
+                          onChange={(e) => setJobOrderSearch(e.target.value)}
+                          className="mb-2"
+                        />
+                      </div>
+                      {filteredJobOrders.map((jobOrder) => (
                         <SelectItem key={jobOrder.id} value={jobOrder.id}>
-                          {jobOrder.job_title} 
+                          {jobOrder.job_title}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -269,7 +292,15 @@ const EndorseApplicantDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {applicants.map((applicant) => (
+                        <div className="p-2">
+                          <Input
+                            placeholder="Search candidates..."
+                            value={applicantSearch}
+                            onChange={(e) => setApplicantSearch(e.target.value)}
+                            className="mb-2"
+                          />
+                        </div>
+                        {filteredApplicants.map((applicant) => (
                           <SelectItem key={applicant.id} value={applicant.id}>
                             {applicant.first_name} {applicant.last_name} -{" "}
                             {applicant.email}

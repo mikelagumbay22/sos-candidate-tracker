@@ -29,6 +29,7 @@ const Users = lazy(() => import("@/pages/Users"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Pipeline = lazy(() => import("@/pages/Pipeline"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Favorites = lazy(() => import("@/pages/Favorites"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -173,6 +174,15 @@ const App = () => {
                 element={
                   <ProtectedRouteComponent>
                     <JobOrders />
+                  </ProtectedRouteComponent>
+                }
+              />
+
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRouteComponent>
+                    <Favorites />
                   </ProtectedRouteComponent>
                 }
               />

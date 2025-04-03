@@ -2,7 +2,10 @@ import { formatDistanceToNowEST } from "@/lib/utils";
 import { JobOrder } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users } from "lucide-react";
+import { Users, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JobOrderCardProps {
   jobOrder: JobOrder;
@@ -10,6 +13,63 @@ interface JobOrderCardProps {
 }
 
 const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
+  const { user } = useAuth();
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    checkFavorite();
+  }, [jobOrder.id, user?.id]);
+
+  const checkFavorite = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("joborder_favorites")
+        .select("id")
+        .eq("joborder_id", jobOrder.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking favorite:", error);
+        return;
+      }
+
+      setIsFavorite(!!data);
+    } catch (error) {
+      console.error("Error checking favorite:", error);
+      setIsFavorite(false);
+    }
+  };
+
+  const toggleFavorite = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking star
+    if (!user) return;
+
+    try {
+      if (isFavorite) {
+        // Remove from favorites
+        await supabase
+          .from("joborder_favorites")
+          .delete()
+          .eq("joborder_id", jobOrder.id)
+          .eq("user_id", user.id);
+      } else {
+        // Add to favorites
+        await supabase
+          .from("joborder_favorites")
+          .insert({
+            joborder_id: jobOrder.id,
+            user_id: user.id,
+          });
+      }
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
+
   const getStatusColor = (status: string): string => {
     const statusColors: Record<string, string> = {
       Kickoff: "bg-[#A74D4A] text-white",
@@ -47,23 +107,37 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
       onClick={onClick}
     >
       <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-lg line-clamp-1">
-            {jobOrder.job_title}
-          </h3>
-          <Badge className={getStatusColor(jobOrder.status)}>
-            {jobOrder.status}
-          </Badge>
-        </div>
-
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Users className="h-4 w-4 mr-1" />
-            <span>{jobOrder.applicant_count || 0} candidates</span>
+        <div>
+          <div className="flex justify-between items-start">
+            <h3 className="font-semibold text-lg line-clamp-1">
+              {jobOrder.job_title}
+            </h3>
+            <Badge className={getStatusColor(jobOrder.status)}>
+              {jobOrder.status}
+            </Badge>
           </div>
 
-          <div className="text-xs text-muted-foreground">
-            Created {formattedDate}
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Users className="h-4 w-4 mr-1" />
+              <span>{jobOrder.applicant_count || 0} candidates</span>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              Created {formattedDate}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-right text-sm text-muted-foreground text-right mt-2 justify-end pt-3">
+          <div 
+            className={`p-1 rounded-full ${isFavorite ? 'bg-[#A74D4A]' : ''}`}
+            onClick={toggleFavorite}
+          >
+            <Star 
+              className={`h-4 w-4 cursor-pointer ${isFavorite ? 'text-white' : 'text-gray-400'}`}
+              onClick={toggleFavorite}
+            />
           </div>
         </div>
       </CardContent>

@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trello,
+  Star,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -25,6 +26,7 @@ const Sidebar = () => {
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard, adminOnly: true },
     { name: "Job Orders", href: "/job-orders", icon: Briefcase },
+    { name: "Favorites", href: "/favorites", icon: Star },
     { name: "Candidates", href: "/applicants", icon: FileText },
     { name: "Pipeline", href: "/pipeline", icon: Trello },
     { name: "Users", href: "/users", icon: Users, adminOnly: true },
