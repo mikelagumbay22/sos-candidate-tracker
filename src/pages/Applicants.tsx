@@ -4,7 +4,7 @@ import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, FileText, FileUser } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,7 +16,10 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import CreateApplicantDialog from "@/components/Applicants/CreateApplicantDialog";
+import EditApplicantDialog from "@/components/Applicants/EditApplicantDialog";
 import { formatDateToEST } from "@/lib/utils";
+import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
+import ApplicantJobOrdersDialog from "@/components/Applicants/ApplicantJobOrdersDialog";
 
 interface ApplicantsProps {
   user: User | null;
@@ -27,6 +30,10 @@ const Applicants = ({ user }: ApplicantsProps) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
+  const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
+  const [isJobOrdersDialogOpen, setIsJobOrdersDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchApplicants();
@@ -59,9 +66,11 @@ const Applicants = ({ user }: ApplicantsProps) => {
             first_name,
             last_name,
             username
-          )
+          ),
+          joborder_applicant(count)
         `
         )
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -108,6 +117,11 @@ const Applicants = ({ user }: ApplicantsProps) => {
     }
   };
 
+  const handleViewResume = (applicant: Applicant) => {
+    setSelectedApplicant(applicant);
+    setIsResumeDialogOpen(true);
+  };
+
   const filteredApplicants = applicants.filter(
     (applicant) =>
       applicant.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,7 +139,7 @@ const Applicants = ({ user }: ApplicantsProps) => {
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-              <h2 className="text-xl font-semibold">Applicants</h2>
+              <h2 className="text-xl font-semibold">Candidates</h2>
 
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="relative w-full sm:w-64">
@@ -140,7 +154,7 @@ const Applicants = ({ user }: ApplicantsProps) => {
 
                 <Button onClick={() => setIsCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  New Applicant
+                  New Candidate
                 </Button>
               </div>
             </div>
@@ -171,8 +185,9 @@ const Applicants = ({ user }: ApplicantsProps) => {
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Location</TableHead>
-  
+                      <TableHead>Resume</TableHead>
                       <TableHead>Added By</TableHead>
+                      <TableHead>Jobs</TableHead>
                       {user?.role === 'administrator' && (
                       <TableHead className="text-right">Actions</TableHead>
                       )}
@@ -187,6 +202,18 @@ const Applicants = ({ user }: ApplicantsProps) => {
                         <TableCell>{applicant.email}</TableCell>
                         <TableCell>{applicant.phone || "N/A"}</TableCell>
                         <TableCell>{applicant.location || "N/A"}</TableCell>
+                        <TableCell>
+                          {applicant.cv_link && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewResume(applicant)}
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span className="sr-only">View Resume</span>
+                            </Button>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">
@@ -204,14 +231,32 @@ const Applicants = ({ user }: ApplicantsProps) => {
                             </p>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          {applicant.joborder_applicant && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedApplicant(applicant);
+                                setIsJobOrdersDialogOpen(true);
+                              }}
+                            >
+                              <span className="text-sm font-medium">
+                                {applicant.joborder_applicant[0].count}
+                              </span>
+                              <span className="sr-only">View Job Orders</span>
+                            </Button>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">
-                          {user?.role === "administrator" && (
+                          {(user?.role === "administrator" || user?.id === applicant.author_id) && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="mr-2"
                               onClick={() => {
-                                /* View/Edit applicant */
+                                setSelectedApplicant(applicant);
+                                setIsEditDialogOpen(true);
                               }}
                             >
                               Edit
@@ -264,6 +309,35 @@ const Applicants = ({ user }: ApplicantsProps) => {
         }}
         user={user}
       />
+
+      {selectedApplicant && (
+        <>
+          <ViewResumeDialog
+            open={isResumeDialogOpen}
+            onOpenChange={setIsResumeDialogOpen}
+            applicantName={`${selectedApplicant.first_name} ${selectedApplicant.last_name}`}
+            cvLink={selectedApplicant.cv_link}
+            applicantId={selectedApplicant.id}
+            onSuccess={() => {
+              fetchApplicants();
+            }}
+          />
+          <ApplicantJobOrdersDialog
+            open={isJobOrdersDialogOpen}
+            onOpenChange={setIsJobOrdersDialogOpen}
+            applicant={selectedApplicant}
+            user={user}
+          />
+          <EditApplicantDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            applicant={selectedApplicant}
+            onSuccess={() => {
+              fetchApplicants();
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -6,10 +5,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 interface CreateApplicantDialogProps {
   open: boolean;
@@ -34,6 +47,8 @@ const CreateApplicantDialog = ({
   user 
 }: CreateApplicantDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,6 +61,50 @@ const CreateApplicantDialog = ({
       cv_link: "",
     },
   });
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      form.setValue("cv_link", file.name); // Set the filename as initial value
+    }
+  };
+  
+  const uploadFile = async (file: File): Promise<string | null> => {
+    try {
+      setIsUploading(true);
+      
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError, data } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload resume. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
   
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
@@ -60,13 +119,25 @@ const CreateApplicantDialog = ({
     try {
       setIsLoading(true);
       
+      let cvLink = values.cv_link;
+      
+      // If there's a file to upload, upload it first
+      if (uploadedFile) {
+        const fileUrl = await uploadFile(uploadedFile);
+        if (fileUrl) {
+          cvLink = fileUrl;
+        } else {
+          return; // Stop if upload failed
+        }
+      }
+
       const { error } = await supabase.from("applicants").insert({
         first_name: values.first_name,
         last_name: values.last_name,
         email: values.email,
-        phone: values.phone || null,
+        phone: values.phone,
         location: values.location || null,
-        cv_link: values.cv_link || null,
+        cv_link: cvLink,
         author_id: user.id,
       });
       
@@ -79,6 +150,7 @@ const CreateApplicantDialog = ({
       
       onSuccess();
       form.reset();
+      setUploadedFile(null);
     } catch (error) {
       console.error("Error creating applicant:", error);
       toast({
@@ -95,7 +167,7 @@ const CreateApplicantDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Applicant</DialogTitle>
+          <DialogTitle>Add New Candidate</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -177,9 +249,27 @@ const CreateApplicantDialog = ({
               name="cv_link"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CV/Resume Link</FormLabel>
+                  <FormLabel>CV/Resume</FormLabel>
                   <FormControl>
-                    <Input type="url" placeholder="https://..." {...field} />
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        disabled={isUploading}
+                      />
+                      {isUploading && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Uploading resume...</span>
+                        </div>
+                      )}
+                      {uploadedFile && !isUploading && (
+                        <p className="text-sm text-muted-foreground">
+                          {uploadedFile.name} will be uploaded when you save
+                        </p>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,11 +281,14 @@ const CreateApplicantDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading || isUploading}
+              >
                 {isLoading ? "Creating..." : "Create Applicant"}
               </Button>
             </DialogFooter>

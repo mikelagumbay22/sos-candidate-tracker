@@ -27,6 +27,7 @@ export interface Applicant {
     last_name: string;
     username: string;
   };
+  joborder_applicant?: Array<{ count: number }>;
 }
 
 export interface JobOrder {
@@ -75,6 +76,7 @@ export interface JobOrder {
 export interface JobOrderApplicant {
   id: string;
   joborder_id: string;
+  job_title: string;
   client_id: string;
   author_id: string;
   created_at: string;
@@ -93,6 +95,16 @@ export interface JobOrderApplicant {
   client_feedback?: string;
   applicant_id?: string;
   applicant?: Applicant;
+  author?: {
+    first_name: string;
+    last_name: string;
+    username: string;
+  };
+  joborder?: {
+    id: string;
+    job_title: string;
+    status: string;
+  };
 }
 
 export interface Client {
