@@ -18,6 +18,7 @@ import Applicants from "./pages/Applicants";
 import Clients from "./pages/Clients";
 import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
+import Pipeline from "./pages/Pipeline";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,25 +38,25 @@ const App = () => {
     const checkUser = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        
+
         if (data.session?.user) {
           try {
             // Get user metadata from auth user
             const { data: authData } = await supabase.auth.getUser();
-            
+
             if (authData.user) {
               const userData: User = {
                 id: authData.user.id,
-                email: authData.user.email || '',
-                first_name: authData.user.user_metadata.first_name || '',
-                last_name: authData.user.user_metadata.last_name || '',
-                username: authData.user.user_metadata.username || '',
-                role: authData.user.user_metadata.role || 'recruiter',
+                email: authData.user.email || "",
+                first_name: authData.user.user_metadata.first_name || "",
+                last_name: authData.user.user_metadata.last_name || "",
+                username: authData.user.user_metadata.username || "",
+                role: authData.user.user_metadata.role || "recruiter",
                 created_at: authData.user.created_at,
                 updated_at: null,
                 deleted_at: null,
               };
-              
+
               setUser(userData);
             }
           } catch (profileError) {
@@ -87,16 +88,16 @@ const App = () => {
             // Get user metadata from auth user
             const userData: User = {
               id: session.user.id,
-              email: session.user.email || '',
-              first_name: session.user.user_metadata.first_name || '',
-              last_name: session.user.user_metadata.last_name || '',
-              username: session.user.user_metadata.username || '',
-              role: session.user.user_metadata.role || 'recruiter',
+              email: session.user.email || "",
+              first_name: session.user.user_metadata.first_name || "",
+              last_name: session.user.user_metadata.last_name || "",
+              username: session.user.user_metadata.username || "",
+              role: session.user.user_metadata.role || "recruiter",
               created_at: session.user.created_at || new Date().toISOString(),
               updated_at: null,
               deleted_at: null,
             };
-            
+
             setUser(userData);
           } catch (error) {
             console.error("Error fetching user profile on auth change:", error);
@@ -121,7 +122,7 @@ const App = () => {
         </div>
       );
     }
-    
+
     if (!user) {
       return <Navigate to="/login" replace />;
     }
@@ -136,9 +137,15 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
-            <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
-            
+            <Route
+              path="/login"
+              element={!user ? <Login /> : <Navigate to="/" replace />}
+            />
+            <Route
+              path="/register"
+              element={!user ? <Register /> : <Navigate to="/" replace />}
+            />
+
             <Route
               path="/"
               element={
@@ -185,6 +192,15 @@ const App = () => {
             />
 
             <Route
+              path="/pipeline"
+              element={
+                <ProtectedRoute>
+                  <Pipeline user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/users"
               element={
                 <ProtectedRoute>
@@ -192,7 +208,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

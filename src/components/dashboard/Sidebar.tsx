@@ -12,6 +12,7 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  Trello,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ const Sidebar = ({ user }: SidebarProps) => {
     { name: "Dashboard", href: "/", icon: LayoutDashboard, adminOnly: true },
     { name: "Job Orders", href: "/job-orders", icon: Briefcase },
     { name: "Candidates", href: "/applicants", icon: FileText },
+    { name: "Pipeline", href: "/pipeline", icon: Trello },
     { name: "Users", href: "/users", icon: Users, adminOnly: true },
     { name: "Clients", href: "/clients", icon: Building2, adminOnly: true },
   ];

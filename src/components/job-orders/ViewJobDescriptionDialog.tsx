@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Upload } from "lucide-react";
@@ -123,6 +124,9 @@ const ViewJobDescriptionDialog = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Job Description - {jobTitle}</DialogTitle>
+          <DialogDescription>
+            View and manage the job description for this position
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -177,6 +177,9 @@ const CreateJobOrderDialog = ({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Job Order</DialogTitle>
+          <DialogDescription>
+            Create a new job order to track open positions
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

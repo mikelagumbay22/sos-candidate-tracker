@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,6 +132,9 @@ const JobOrderApplicantDialog = ({
             Profiler: {applicant.applicant?.first_name}{" "}
             {applicant.applicant?.last_name}
           </DialogTitle>
+          <DialogDescription>
+            View and manage applicant information for this job order
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
