@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import CreateApplicantDialog from "@/components/Applicants/CreateApplicantDialog.tsx";
-import EditApplicantDialog from "@/components/applicants/EditApplicantDialog.tsx";
+import EditApplicantDialog from "@/components/Applicants/EditApplicantDialog.tsx";
 import { formatDateToEST } from "@/lib/utils";
 import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
 import ApplicantJobOrdersDialog from "@/components/applicants/ApplicantJobOrdersDialog";
