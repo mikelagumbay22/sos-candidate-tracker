@@ -32,6 +32,7 @@ import {
   Save,
   Loader2,
   GitCompareArrows,
+  Linkedin,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -654,6 +655,9 @@ const JobOrderDetail = () => {
                           Resume
                         </TableHead>
                         <TableHead className="text-start  text-white font-bold">
+                          LinkedIn
+                        </TableHead>
+                        <TableHead className="text-start  text-white font-bold">
                           Profiler
                         </TableHead>
                         <TableHead className="text-center  text-white font-bold">
@@ -668,9 +672,11 @@ const JobOrderDetail = () => {
                         <TableHead className="text-center  text-white font-bold">
                           Client Feedback
                         </TableHead>
+                        {user?.role === "administrator" && (
                         <TableHead className="text-center  text-white font-bold">
                           Edit
                         </TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -721,6 +727,18 @@ const JobOrderDetail = () => {
                                 <span className="sr-only">View Resume</span>
                               </Button>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {applicant.applicant?.linkedin_profile && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => window.open(applicant.applicant?.linkedin_profile, "_blank")}
+                              > 
+                                <Linkedin className="h-4 w-4" />
+                                <span className="sr-only">View LinkedIn</span>
+                              </Button>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
@@ -867,7 +885,8 @@ const JobOrderDetail = () => {
                             ) : (
                               applicant.client_feedback || "N/A"
                             )}
-                          </TableCell>
+                          </TableCell> 
+                          {user?.role === 'administrator' && (
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               {isEditing &&
@@ -901,6 +920,7 @@ const JobOrderDetail = () => {
                               )}
                             </div>
                           </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

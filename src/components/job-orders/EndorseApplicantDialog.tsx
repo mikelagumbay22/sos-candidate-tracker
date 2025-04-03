@@ -42,6 +42,7 @@ interface EndorseApplicantDialogProps {
 
 const formSchema = z.object({
   applicant_id: z.string({ required_error: "Please select a candidate" }),
+  joborder_id: z.string({ required_error: "Please select a job order" }),
   asking_salary: z.string().optional(),
   interview_notes: z.string().optional(),
 });
@@ -54,7 +55,9 @@ const EndorseApplicantDialog = ({
   onSuccess,
 }: EndorseApplicantDialogProps) => {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [jobOrders, setJobOrders] = useState<JobOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(
     null
   );
@@ -64,6 +67,7 @@ const EndorseApplicantDialog = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       applicant_id: "",
+      joborder_id: "",
       asking_salary: "",
       interview_notes: "",
     },
@@ -72,29 +76,68 @@ const EndorseApplicantDialog = ({
   useEffect(() => {
     if (open) {
       form.reset();
-      fetchApplicants();
+      fetchJobOrders();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, form]);
+  }, [open]);
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.joborder_id) {
+        fetchApplicants();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  const fetchJobOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("joborder")
+        .select(`*`)
+        .not("status", "in", "('Hire','On-hold','Canceled')")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setJobOrders(data || []);
+    } catch (error) {
+      console.error("Error fetching job orders:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load job orders. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchApplicants = async () => {
     try {
       setIsLoading(true);
 
-      // Get existing applicants associated with this job order
+      // Get the selected job order ID from the form
+      const selectedJobOrderId = form.getValues("joborder_id");
+
+      if (!selectedJobOrderId) {
+        setApplicants([]);
+        return;
+      }
+
+      // Get existing applicants associated with the selected job order
       const { data: existingApplicantIds } = await supabase
         .from("joborder_applicant")
         .select("applicant_id")
-        .eq("joborder_id", jobOrder.id);
+        .eq("joborder_id", selectedJobOrderId);
 
       const existingIds =
         existingApplicantIds?.map((item) => item.applicant_id) || [];
 
-      // Fetch all candidates that are not already associated with this job order
+      // Fetch all candidates that are not already associated with the selected job order
+      // and were created by the current user
       const { data, error } = await supabase
         .from("applicants")
         .select("*")
         .not("id", "in", `(${existingIds.join(",")})`)
+        .eq("author_id", user?.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -122,11 +165,18 @@ const EndorseApplicantDialog = ({
     }
 
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
+
+      const selectedJobOrder = jobOrders.find(
+        (j) => j.id === values.joborder_id
+      );
+      if (!selectedJobOrder) {
+        throw new Error("Selected job order not found");
+      }
 
       const { error } = await supabase.from("joborder_applicant").insert({
-        joborder_id: jobOrder.id,
-        client_id: jobOrder.client_id,
+        joborder_id: values.joborder_id,
+        client_id: selectedJobOrder.client_id,
         applicant_id: values.applicant_id,
         author_id: user.id,
         application_stage: "Sourced",
@@ -154,7 +204,7 @@ const EndorseApplicantDialog = ({
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -166,6 +216,36 @@ const EndorseApplicantDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+          <FormField
+              control={form.control}
+              name="joborder_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Job Order</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a job order" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {jobOrders.map((jobOrder) => (
+                        <SelectItem key={jobOrder.id} value={jobOrder.id}>
+                          {jobOrder.job_title} 
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+
             <FormField
               control={form.control}
               name="applicant_id"
@@ -185,7 +265,7 @@ const EndorseApplicantDialog = ({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select an candidate" />
+                          <SelectValue placeholder="Select a candidate" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -212,6 +292,7 @@ const EndorseApplicantDialog = ({
                 </FormItem>
               )}
             />
+            
 
             <FormField
               control={form.control}
@@ -250,15 +331,15 @@ const EndorseApplicantDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || applicants.length === 0}
+                disabled={isSubmitting || applicants.length === 0}
               >
-                {isLoading ? "Endorsing..." : "Save"}
+                {isSubmitting ? "Endorsing..." : "Save"}
               </Button>
             </DialogFooter>
           </form>

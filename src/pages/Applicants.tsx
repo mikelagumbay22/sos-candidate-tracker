@@ -4,7 +4,7 @@ import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, FileUser, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, FileText, FileUser, Pencil, Trash2, Linkedin } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -186,6 +186,7 @@ export default function Applicants() {
                       <TableHead className="text-white">Phone</TableHead>
                       <TableHead className="text-white">Location</TableHead>
                       <TableHead className="text-white">Resume</TableHead>
+                      <TableHead className="text-white">LinkedIn</TableHead>
                       <TableHead className="text-white">Added By</TableHead>
                       <TableHead className="text-white">Jobs</TableHead>
                       <TableHead className="text-center text-white">
@@ -211,6 +212,18 @@ export default function Applicants() {
                             >
                               <FileText className="h-4 w-4" />
                               <span className="sr-only">View Resume</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {applicant.linkedin_profile && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => window.open(applicant.linkedin_profile, "_blank")}
+                            >
+                              <Linkedin className="h-4 w-4" />
+                              <span className="sr-only">View LinkedIn</span>
                             </Button>
                           )}
                         </TableCell>

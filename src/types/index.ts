@@ -8,6 +8,7 @@ export interface User {
   created_at?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
+  linkedin_profile?: string;
   author?: {
     first_name: string;
     last_name: string;
@@ -26,6 +27,7 @@ export interface Applicant {
   phone?: string;
   location?: string;
   cv_link?: string;
+  linkedin_profile?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
   author?: {
