@@ -9,6 +9,8 @@ import { CreateCardDialog } from "@/components/pipeline/CreateCardDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import Header from "@/components/dashboard/Header";
+import Sidebar from "@/components/dashboard/Sidebar";
 
 interface PipelineProps {
   user: User | null;
@@ -40,7 +42,12 @@ const Pipeline = ({ user }: PipelineProps) => {
   });
 
   return (
-    <Layout pageTitle="Pipeline" user={user}>
+    <div className="flex h-screen">
+    <Sidebar user={user} />
+
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <Header user={user} />
+    
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Pipeline</h1>
@@ -81,7 +88,9 @@ const Pipeline = ({ user }: PipelineProps) => {
           refetch();
         }}
       />
-    </Layout>
+   
+    </div>
+    </div>
   );
 };
 
