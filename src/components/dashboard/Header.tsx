@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,7 @@ const Header = () => {
 
   const handleUpdateProfile = async () => {
     if (!user) return;
-    
+
     setIsUpdating(true);
     try {
       const { error } = await updateUserProfile(user.id, {
@@ -73,7 +73,7 @@ const Header = () => {
         description: "Your profile has been successfully updated.",
       });
       setIsProfileOpen(false);
-      
+
       // Force refresh to update user data
       window.location.reload();
     } catch (error) {
@@ -95,38 +95,51 @@ const Header = () => {
           Welcome, {user?.first_name || "User"}!
         </h1>
       </div>
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10 cursor-pointer">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback className="bg-ats-blue-600 text-white">
-                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Edit Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      
+
+      <div className="flex items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {user?.username || "User"}
+          </h1>
+        </div>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-10 w-10 rounded-full"
+              >
+                <Avatar className="h-10 w-10 cursor-pointer">
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback className="bg-ats-blue-600 text-white">
+                    {user?.first_name?.charAt(0)}
+                    {user?.last_name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Edit Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
       {/* Edit Profile Dialog */}
       <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
         <DialogContent>
@@ -138,11 +151,12 @@ const Header = () => {
               <Avatar className="h-20 w-20">
                 <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback className="bg-ats-blue-600 text-white text-xl">
-                  {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+                  {user?.first_name?.charAt(0)}
+                  {user?.last_name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first_name">First Name</Label>
@@ -163,7 +177,7 @@ const Header = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -174,15 +188,17 @@ const Header = () => {
                 disabled
               />
               <p className="text-xs text-gray-500">
-                Email cannot be changed. Contact an administrator for assistance.
+                Email cannot be changed. Contact an administrator for
+                assistance.
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <Label>Username</Label>
               <Input value={user?.username || ""} disabled />
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsProfileOpen(false)}>
               Cancel
