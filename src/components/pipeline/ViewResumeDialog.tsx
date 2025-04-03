@@ -16,12 +16,7 @@ interface ViewResumeDialogProps {
   onResumeUpdated: () => void;
 }
 
-export const ViewResumeDialog = ({
-  open,
-  onOpenChange,
-  applicant,
-  onResumeUpdated,
-}: ViewResumeDialogProps) => {
+export default function ViewResumeDialog({ open, onOpenChange, applicant, onResumeUpdated }: ViewResumeDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
@@ -212,4 +207,4 @@ export const ViewResumeDialog = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

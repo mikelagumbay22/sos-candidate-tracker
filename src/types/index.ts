@@ -8,6 +8,12 @@ export interface User {
   created_at?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
+  author?: {
+    first_name: string;
+    last_name: string;
+    username: string;
+  };
+  
 }
 
 export interface Applicant {

@@ -1,19 +1,18 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { toast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "@/components/ui/use-toast";
-import { Applicant } from "@/types";
 import { Search } from "lucide-react";
+import { Applicant } from "@/types";
 
 interface AddApplicantDialogProps {
   open: boolean;
@@ -22,36 +21,27 @@ interface AddApplicantDialogProps {
   onApplicantAdded: () => void;
 }
 
-export const AddApplicantDialog = ({
+export default function AddApplicantDialog({
   open,
   onOpenChange,
   cardId,
   onApplicantAdded,
-}: AddApplicantDialogProps) => {
-  const [selectedApplicantIds, setSelectedApplicantIds] = useState<string[]>(
-    []
-  );
-  const [isLoading, setIsLoading] = useState(false);
+}: AddApplicantDialogProps) {
+  const [selectedApplicantIds, setSelectedApplicantIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch all applicants created by the current user
-  const { data: applicants, isLoading: isLoadingApplicants } = useQuery({
-    queryKey: ["applicants-for-card"],
+  const { data: applicants, isLoading } = useQuery({
+    queryKey: ["applicants", searchQuery],
     queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      let query = supabase.from("applicants").select("*");
 
-      if (!user) {
-        throw new Error("User not authenticated");
+      if (searchQuery) {
+        query = query.or(
+          `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
+        );
       }
 
-      const { data, error } = await supabase
-        .from("applicants")
-        .select("*")
-        .eq("author_id", user.id)
-        .is("deleted_at", null)
-        .order("first_name", { ascending: true });
+      const { data, error } = await query;
 
       if (error) {
         toast({
@@ -62,41 +52,9 @@ export const AddApplicantDialog = ({
         throw error;
       }
 
-      return data || [];
+      return data as Applicant[];
     },
-    enabled: open,
   });
-
-  // Fetch already added applicants to exclude them
-  const { data: existingApplicants } = useQuery({
-    queryKey: ["existing-applicants", cardId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pipeline_card_applicants")
-        .select("applicant_id")
-        .eq("card_id", cardId);
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load existing applicants",
-          variant: "destructive",
-        });
-        throw error;
-      }
-
-      return data.map((item) => item.applicant_id);
-    },
-    enabled: open && cardId !== "",
-  });
-
-  const toggleApplicant = (applicantId: string) => {
-    setSelectedApplicantIds((prev) =>
-      prev.includes(applicantId)
-        ? prev.filter((id) => id !== applicantId)
-        : [...prev, applicantId]
-    );
-  };
 
   const handleAddApplicants = async () => {
     if (selectedApplicantIds.length === 0) {
@@ -108,23 +66,17 @@ export const AddApplicantDialog = ({
       return;
     }
 
-    setIsLoading(true);
-
-    const applicantsToAdd = selectedApplicantIds.map((applicantId) => ({
-      card_id: cardId,
-      applicant_id: applicantId,
-    }));
-
-    const { error } = await supabase
-      .from("pipeline_card_applicants")
-      .insert(applicantsToAdd);
-
-    setIsLoading(false);
+    const { error } = await supabase.from("pipeline_card_applicants").insert(
+      selectedApplicantIds.map((applicantId) => ({
+        card_id: cardId,
+        applicant_id: applicantId,
+      }))
+    );
 
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to add applicants to card",
+        description: "Failed to add applicants",
         variant: "destructive",
       });
       return;
@@ -132,117 +84,88 @@ export const AddApplicantDialog = ({
 
     toast({
       title: "Success",
-      description: `${selectedApplicantIds.length} applicant(s) added to card`,
+      description: "Applicants added successfully",
     });
-    setSelectedApplicantIds([]);
-    onOpenChange(false);
+
     onApplicantAdded();
+    onOpenChange(false);
+    setSelectedApplicantIds([]);
   };
-
-  const isApplicantAdded = (applicantId: string) => {
-    return existingApplicants?.includes(applicantId) || false;
-  };
-
-  const filteredApplicants = applicants?.filter((applicant) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      applicant.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      applicant.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      applicant.email.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return !isApplicantAdded(applicant.id) && matchesSearch;
-  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80vh] overflow-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Applicants to Card</DialogTitle>
+          <DialogTitle>Add Candidates to Pipeline</DialogTitle>
         </DialogHeader>
-
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-
-        <div className="py-4">
-          {isLoadingApplicants ? (
-            <div className="animate-pulse space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-12 bg-gray-100 rounded"></div>
-              ))}
-            </div>
-          ) : filteredApplicants && filteredApplicants.length > 0 ? (
-            <div className="space-y-2">
-              {filteredApplicants.map((applicant: Applicant) => (
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search candidates..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="max-h-[400px] overflow-y-auto space-y-2">
+            {isLoading ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-12 bg-gray-100 rounded"></div>
+                <div className="h-12 bg-gray-100 rounded"></div>
+              </div>
+            ) : applicants && applicants.length > 0 ? (
+              applicants.map((applicant) => (
                 <div
                   key={applicant.id}
-                  className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md"
+                  className="flex items-center space-x-2 p-2 border rounded-md"
                 >
                   <Checkbox
-                    id={`applicant-${applicant.id}`}
+                    id={applicant.id}
                     checked={selectedApplicantIds.includes(applicant.id)}
-                    onCheckedChange={() => toggleApplicant(applicant.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedApplicantIds([...selectedApplicantIds, applicant.id]);
+                      } else {
+                        setSelectedApplicantIds(
+                          selectedApplicantIds.filter((id) => id !== applicant.id)
+                        );
+                      }
+                    }}
                   />
                   <label
-                    htmlFor={`applicant-${applicant.id}`}
+                    htmlFor={applicant.id}
                     className="flex-1 cursor-pointer"
                   >
-                    <div className="grid grid-cols-2 gap-1">
-                      <div className="font-medium">
-                        {applicant.first_name} {applicant.last_name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        <div>{applicant.email}</div>
-                        {applicant.phone && (
-                          <div className="text-xs text-gray-500">
-                            {applicant.phone}
-                          </div>
-                        )}
-                      </div>
+                    <div className="font-medium">
+                      {applicant.first_name} {applicant.last_name}
                     </div>
+                    <div className="text-sm text-gray-500">{applicant.email}</div>
                   </label>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">
-                {searchQuery
-                  ? "No applicants found matching your search."
-                  : "No available applicants to add. All your applicants are already added to this card or you haven't created any applicants yet."}
-              </p>
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No candidates found</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+                setSelectedApplicantIds([]);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddApplicants}>
+              Add Selected ({selectedApplicantIds.length})
+            </Button>
+          </div>
         </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSelectedApplicantIds([]);
-              setSearchQuery("");
-              onOpenChange(false);
-            }}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleAddApplicants}
-            disabled={selectedApplicantIds.length === 0 || isLoading}
-          >
-            {isLoading
-              ? "Adding..."
-              : `Add Selected (${selectedApplicantIds.length})`}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}

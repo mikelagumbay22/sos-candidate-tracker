@@ -14,12 +14,10 @@ import {
   ChevronRight,
   Trello,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface SidebarProps {
-  user: User | null;
-}
-
-const Sidebar = ({ user }: SidebarProps) => {
+const Sidebar = () => {
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const isAdmin = user?.role === "administrator";

@@ -15,17 +15,15 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog";
-import EditApplicantDialog from "@/components/applicants/EditApplicantDialog";
+import CreateApplicantDialog from "@/components/applicants/CreateApplicantDialog.tsx";
+import EditApplicantDialog from "@/components/applicants/EditApplicantDialog.tsx";
 import { formatDateToEST } from "@/lib/utils";
 import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
 import ApplicantJobOrdersDialog from "@/components/applicants/ApplicantJobOrdersDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface ApplicantsProps {
-  user: User | null;
-}
-
-const Applicants = ({ user }: ApplicantsProps) => {
+export default function Applicants() {
+  const { user } = useAuth();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,10 +131,10 @@ const Applicants = ({ user }: ApplicantsProps) => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar user={user} />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
@@ -341,6 +339,4 @@ const Applicants = ({ user }: ApplicantsProps) => {
       )}
     </div>
   );
-};
-
-export default Applicants;
+}

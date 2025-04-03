@@ -1,24 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./lib/supabase";
 import { User } from "./types";
 import { toast } from "@/components/ui/use-toast";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import React from "react";
 
-// Pages
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import JobOrders from "./pages/JobOrders";
-import JobOrderDetail from "./pages/JobOrderDetail";
-import Applicants from "./pages/Applicants";
-import Clients from "./pages/Clients";
-import Users from "./pages/Users";
-import NotFound from "./pages/NotFound";
-import Pipeline from "./pages/Pipeline";
+// Lazy load pages
+const Login = lazy(() => import("@/pages/Login"));
+const Register = lazy(() => import("@/pages/Register"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const JobOrders = lazy(() => import("@/pages/JobOrders"));
+const JobOrderDetail = lazy(() => import("@/pages/JobOrderDetail"));
+const Applicants = lazy(() => import("@/pages/Applicants"));
+const Clients = lazy(() => import("@/pages/Clients"));
+const Users = lazy(() => import("@/pages/Users"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Pipeline = lazy(() => import("@/pages/Pipeline"));
+const Settings = lazy(() => import("@/pages/Settings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,7 +119,7 @@ const App = () => {
   }, []);
 
   // Auth guard component
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const ProtectedRouteComponent = ({ children }: { children: React.ReactNode }) => {
     if (loading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
@@ -132,88 +137,98 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="/login"
-              element={!user ? <Login /> : <Navigate to="/" replace />}
-            />
-            <Route
-              path="/register"
-              element={!user ? <Register /> : <Navigate to="/" replace />}
-            />
+      <AuthProvider>
+        <Router>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route
+                path="/login"
+                element={!user ? <Login /> : <Navigate to="/" replace />}
+              />
+              <Route
+                path="/register"
+                element={!user ? <Register /> : <Navigate to="/" replace />}
+              />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Dashboard user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRouteComponent>
+                    <Dashboard />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/job-orders"
-              element={
-                <ProtectedRoute>
-                  <JobOrders user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/job-orders"
+                element={
+                  <ProtectedRouteComponent>
+                    <JobOrders />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/job-orders/:id"
-              element={
-                <ProtectedRoute>
-                  <JobOrderDetail user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/job-orders/:id"
+                element={
+                  <ProtectedRouteComponent>
+                    <JobOrderDetail />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/applicants"
-              element={
-                <ProtectedRoute>
-                  <Applicants user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/applicants"
+                element={
+                  <ProtectedRouteComponent>
+                    <Applicants />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/clients"
-              element={
-                <ProtectedRoute>
-                  <Clients user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/clients"
+                element={
+                  <ProtectedRouteComponent>
+                    <Clients />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/pipeline"
-              element={
-                <ProtectedRoute>
-                  <Pipeline user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/pipeline"
+                element={
+                  <ProtectedRouteComponent>
+                    <Pipeline />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <Users user={user} />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRouteComponent>
+                    <Users />
+                  </ProtectedRouteComponent>
+                }
+              />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRouteComponent>
+                    <Settings />
+                  </ProtectedRouteComponent>
+                }
+              />
+
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+          <Toaster />
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

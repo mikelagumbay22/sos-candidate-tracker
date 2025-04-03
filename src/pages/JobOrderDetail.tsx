@@ -58,6 +58,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -82,7 +83,8 @@ interface JobOrderApplicantDialogProps {
   applicant: ApplicantWithDetails;
 }
 
-const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
+const JobOrderDetail = () => {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [jobOrder, setJobOrder] = useState<JobOrderWithClient | null>(null);
@@ -390,9 +392,9 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   if (loading) {
     return (
       <div className="flex h-screen">
-        <Sidebar user={user} />
+        <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header user={user} />
+          <Header />
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div className="max-w-7xl mx-auto">
               <div className="animate-pulse space-y-4">
@@ -410,9 +412,9 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   if (!jobOrder) {
     return (
       <div className="flex h-screen">
-        <Sidebar user={user} />
+        <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header user={user} />
+          <Header  />
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div className="max-w-7xl mx-auto text-center py-12">
               <h2 className="text-xl font-semibold mb-2">
@@ -435,10 +437,10 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar user={user} />
+      <Sidebar  />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header  />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">

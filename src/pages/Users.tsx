@@ -18,12 +18,10 @@ import { toast } from "@/hooks/use-toast";
 import CreateUserDialog from "@/components/Users/CreateUserDialog";
 import EditUserDialog from "@/components/Users/EditUserDialog";
 import { formatDateToEST } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface UsersProps {
-  user: User | null;
-}
-
-const Users = ({ user }: UsersProps) => {
+export default function Users() {
+  const { user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,10 +82,10 @@ const Users = ({ user }: UsersProps) => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar user={user} />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
@@ -251,6 +249,4 @@ const Users = ({ user }: UsersProps) => {
       )}
     </div>
   );
-};
-
-export default Users;
+}

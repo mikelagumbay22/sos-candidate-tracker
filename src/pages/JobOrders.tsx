@@ -18,12 +18,10 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import JobOrderCard from "@/components/job-orders/JobOrderCard";
 import CreateJobOrderDialog from "@/components/job-orders/CreateJobOrderDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface JobOrdersProps {
-  user: User | null;
-}
-
-const JobOrders = ({ user }: JobOrdersProps) => {
+const JobOrders = () => {
+  const { user } = useAuth();
   const [jobOrders, setJobOrders] = useState<JobOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,7 +47,7 @@ const JobOrders = ({ user }: JobOrdersProps) => {
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchJobOrders = async () => {
@@ -116,10 +114,10 @@ const JobOrders = ({ user }: JobOrdersProps) => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar user={user} />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
@@ -150,12 +148,8 @@ const JobOrders = ({ user }: JobOrdersProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="Kickoff">
-                        Kickoff
-                      </SelectItem>
-                      <SelectItem value="Sourcing">
-                        Sourcing
-                      </SelectItem>
+                      <SelectItem value="Kickoff">Kickoff</SelectItem>
+                      <SelectItem value="Sourcing">Sourcing</SelectItem>
                       <SelectItem value="Internal Interview">
                         Internal Interview
                       </SelectItem>

@@ -36,7 +36,7 @@ export const Layout = ({ user, children, pageTitle }: LayoutProps) => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar user={user} />
+      <Sidebar />
       
       <div className="flex-1 overflow-y-auto">
         <header className="sticky top-0 z-10 border-b bg-white shadow-sm">

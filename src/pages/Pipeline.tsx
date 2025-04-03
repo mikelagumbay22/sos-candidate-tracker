@@ -11,12 +11,10 @@ import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface PipelineProps {
-  user: User | null;
-}
-
-const Pipeline = ({ user }: PipelineProps) => {
+export default function Pipeline() {
+  const { user } = useAuth();
   const [isCreateCardDialogOpen, setIsCreateCardDialogOpen] = useState(false);
 
   // Fetch pipeline cards
@@ -43,55 +41,52 @@ const Pipeline = ({ user }: PipelineProps) => {
 
   return (
     <div className="flex h-screen">
-    <Sidebar user={user} />
-
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <Header user={user} />
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
     
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Pipeline</h1>
-          <Button onClick={() => setIsCreateCardDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Create Card
-          </Button>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">Pipeline</h1>
+            <Button onClick={() => setIsCreateCardDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Create Card
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-52 animate-pulse bg-gray-100">
+                  <CardHeader className="bg-gray-200 h-12" />
+                  <CardContent className="bg-gray-100 h-40" />
+                </Card>
+              ))}
+            </div>
+          ) : pipelineCards && pipelineCards.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pipelineCards.map((card) => (
+                <PipelineCard key={card.id} card={card} onUpdate={refetch} />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-8 text-center">
+              <p className="text-gray-500 mb-4">No pipeline cards found.</p>
+              <Button onClick={() => setIsCreateCardDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" /> Create Your First Card
+              </Button>
+            </Card>
+          )}
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="h-52 animate-pulse bg-gray-100">
-                <CardHeader className="bg-gray-200 h-12" />
-                <CardContent className="bg-gray-100 h-40" />
-              </Card>
-            ))}
-          </div>
-        ) : pipelineCards && pipelineCards.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pipelineCards.map((card) => (
-              <PipelineCard key={card.id} card={card} onUpdate={refetch} />
-            ))}
-          </div>
-        ) : (
-          <Card className="p-8 text-center">
-            <p className="text-gray-500 mb-4">No pipeline cards found.</p>
-            <Button onClick={() => setIsCreateCardDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Your First Card
-            </Button>
-          </Card>
-        )}
+        <CreateCardDialog
+          open={isCreateCardDialogOpen}
+          onOpenChange={setIsCreateCardDialogOpen}
+          onCardCreated={() => {
+            refetch();
+          }}
+        />
+     
       </div>
-
-      <CreateCardDialog
-        open={isCreateCardDialogOpen}
-        onOpenChange={setIsCreateCardDialogOpen}
-        onCardCreated={() => {
-          refetch();
-        }}
-      />
-   
-    </div>
     </div>
   );
-};
-
-export default Pipeline
+}

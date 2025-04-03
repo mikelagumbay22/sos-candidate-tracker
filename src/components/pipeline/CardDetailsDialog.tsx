@@ -32,7 +32,7 @@ interface CardDetailsDialogProps {
   onViewResume: (applicant: Applicant) => void;
 }
 
-export const CardDetailsDialog = ({
+export default function CardDetailsDialog({
   open,
   onOpenChange,
   cardTitle,
@@ -40,7 +40,7 @@ export const CardDetailsDialog = ({
   isLoading,
   onRemoveApplicant,
   onViewResume,
-}: CardDetailsDialogProps) => {
+}: CardDetailsDialogProps) {
   // Add debug logging
   useEffect(() => {
     if (open) {
@@ -151,4 +151,4 @@ export const CardDetailsDialog = ({
       </DialogContent>
     </Dialog>
   );
-}; 
+} 

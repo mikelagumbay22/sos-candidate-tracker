@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   DropdownMenu,
@@ -24,12 +23,10 @@ import { toast } from "@/components/ui/use-toast";
 import { User } from "@/types";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface HeaderProps {
-  user: User | null;
-}
-
-const Header = ({ user }: HeaderProps) => {
+const Header = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileData, setProfileData] = useState({

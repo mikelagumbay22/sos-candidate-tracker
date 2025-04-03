@@ -1,13 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, File, Trash2, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { AddApplicantDialog } from "./AddApplicantDialog";
-import { ViewResumeDialog } from "./ViewResumeDialog";
-import { CardDetailsDialog } from "./CardDetailsDialog";
 import { toast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
@@ -21,6 +18,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Applicant } from "@/types";
+
+// Dynamic imports
+const AddApplicantDialog = lazy(() => import("./AddApplicantDialog"));
+const ViewResumeDialog = lazy(() => import("./ViewResumeDialog"));
+const CardDetailsDialog = lazy(() => import("./CardDetailsDialog"));
+
+// Loading component for Suspense
+const DialogLoading = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>
+);
 
 interface PipelineCardProps {
   card: {
@@ -226,37 +235,43 @@ export const PipelineCard = ({ card, onUpdate }: PipelineCardProps) => {
         </div>
       </Card>
 
-      <CardDetailsDialog
-        open={isCardDetailsDialogOpen}
-        onOpenChange={setIsCardDetailsDialogOpen}
-        cardTitle={card.title}
-        applicants={applicants || []}
-        isLoading={isLoadingApplicants}
-        onRemoveApplicant={handleRemoveApplicant}
-        onViewResume={(applicant) => {
-          setSelectedApplicant(applicant);
-          setIsResumeDialogOpen(true);
-        }}
-      />
+      <Suspense fallback={<DialogLoading />}>
+        <CardDetailsDialog
+          open={isCardDetailsDialogOpen}
+          onOpenChange={setIsCardDetailsDialogOpen}
+          cardTitle={card.title}
+          applicants={applicants || []}
+          isLoading={isLoadingApplicants}
+          onRemoveApplicant={handleRemoveApplicant}
+          onViewResume={(applicant) => {
+            setSelectedApplicant(applicant);
+            setIsResumeDialogOpen(true);
+          }}
+        />
+      </Suspense>
 
-      <AddApplicantDialog
-        open={isAddApplicantDialogOpen}
-        onOpenChange={setIsAddApplicantDialogOpen}
-        cardId={card.id}
-        onApplicantAdded={() => {
-          refetch();
-        }}
-      />
-
-      {selectedApplicant && (
-        <ViewResumeDialog
-          open={isResumeDialogOpen}
-          onOpenChange={setIsResumeDialogOpen}
-          applicant={selectedApplicant}
-          onResumeUpdated={() => {
+      <Suspense fallback={<DialogLoading />}>
+        <AddApplicantDialog
+          open={isAddApplicantDialogOpen}
+          onOpenChange={setIsAddApplicantDialogOpen}
+          cardId={card.id}
+          onApplicantAdded={() => {
             refetch();
           }}
         />
+      </Suspense>
+
+      {selectedApplicant && (
+        <Suspense fallback={<DialogLoading />}>
+          <ViewResumeDialog
+            open={isResumeDialogOpen}
+            onOpenChange={setIsResumeDialogOpen}
+            applicant={selectedApplicant}
+            onResumeUpdated={() => {
+              refetch();
+            }}
+          />
+        </Suspense>
       )}
     </>
   );

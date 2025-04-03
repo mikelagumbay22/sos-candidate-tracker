@@ -1,21 +1,18 @@
-
-import { User } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import StatsCards from "@/components/dashboard/StatsCards";
 import ChartSection from "@/components/dashboard/ChartSection";
 
-interface DashboardProps {
-  user: User | null;
-}
-
-const Dashboard = ({ user }: DashboardProps) => {
+export default function Dashboard() {
+  const { user } = useAuth();
+  
   return (
     <div className="flex h-screen">
-      <Sidebar user={user} />
+      <Sidebar />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header />
         
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto animate-fade-in">
@@ -93,6 +90,4 @@ const Dashboard = ({ user }: DashboardProps) => {
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
