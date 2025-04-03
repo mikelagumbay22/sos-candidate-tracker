@@ -4,7 +4,7 @@ import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -132,14 +132,16 @@ const Users = ({ user }: UsersProps) => {
             ) : filteredUsers.length > 0 ? (
               <div className="bg-white rounded-md shadow overflow-hidden">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-[#A74D4A] text-white font-bold">
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Username</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Created At</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-white">Name</TableHead>
+                      <TableHead className="text-white">Email</TableHead>
+                      <TableHead className="text-white">Username</TableHead>
+                      <TableHead className="text-white">Role</TableHead>
+                      <TableHead className="text-white">Created At</TableHead>
+                      <TableHead className="text-center text-white">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -150,7 +152,9 @@ const Users = ({ user }: UsersProps) => {
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.username}</TableCell>
-                        <TableCell className="capitalize">{user.role}</TableCell>
+                        <TableCell className="capitalize">
+                          {user.role}
+                        </TableCell>
                         <TableCell>
                           {formatDateToEST(user.created_at)}
                         </TableCell>
@@ -164,7 +168,7 @@ const Users = ({ user }: UsersProps) => {
                                 setIsEditDialogOpen(true);
                               }}
                             >
-                              Edit
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="destructive"
@@ -173,7 +177,9 @@ const Users = ({ user }: UsersProps) => {
                                 try {
                                   const { error } = await supabase
                                     .from("users")
-                                    .update({ deleted_at: new Date().toISOString() })
+                                    .update({
+                                      deleted_at: new Date().toISOString(),
+                                    })
                                     .eq("id", user.id);
 
                                   if (error) throw error;
@@ -195,7 +201,7 @@ const Users = ({ user }: UsersProps) => {
                                 }
                               }}
                             >
-                              Delete
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -247,4 +253,4 @@ const Users = ({ user }: UsersProps) => {
   );
 };
 
-export default Users; 
+export default Users;

@@ -109,17 +109,22 @@ export interface JobOrderApplicant {
 
 export interface Client {
   id: string;
-  author_id: string;
-  created_at: string;
   first_name: string;
   last_name: string;
+  company: string;
   position: string;
   email: string;
-  phone?: string;
-  location?: string;
-  company: string;
-  updated_at?: string | null;
-  deleted_at?: string | null;
+  phone: string;
+  location: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  author_id: string;
+  author: {
+    first_name: string;
+    last_name: string;
+  };
+  joborder?: Array<{ count: number }>;
 }
 
 export interface DashboardStats {

@@ -4,7 +4,7 @@ import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, FileUser } from "lucide-react";
+import { Search, Plus, FileText, FileUser, Pencil, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,7 +31,9 @@ const Applicants = ({ user }: ApplicantsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(
+    null
+  );
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
   const [isJobOrdersDialogOpen, setIsJobOrdersDialogOpen] = useState(false);
 
@@ -179,24 +181,26 @@ const Applicants = ({ user }: ApplicantsProps) => {
             ) : filteredApplicants.length > 0 ? (
               <div className="bg-white rounded-md shadow overflow-hidden">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-[#A74D4A] text-white font-bold">
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Resume</TableHead>
-                      <TableHead>Added By</TableHead>
-                      <TableHead>Jobs</TableHead>
-                      {user?.role === 'administrator' && (
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-white">Name</TableHead>
+                      <TableHead className="text-white">Email</TableHead>
+                      <TableHead className="text-white">Phone</TableHead>
+                      <TableHead className="text-white">Location</TableHead>
+                      <TableHead className="text-white">Resume</TableHead>
+                      <TableHead className="text-white">Added By</TableHead>
+                      <TableHead className="text-white">Jobs</TableHead>
+                      {user?.role === "administrator" && (
+                        <TableHead className="text-center text-white">
+                          Actions
+                        </TableHead>
                       )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredApplicants.map((applicant) => (
                       <TableRow key={applicant.id}>
-                        <TableCell className="font-medium">                          
+                        <TableCell className="font-medium">
                           {applicant.first_name} {applicant.last_name}
                         </TableCell>
                         <TableCell>{applicant.email}</TableCell>
@@ -217,12 +221,11 @@ const Applicants = ({ user }: ApplicantsProps) => {
                         <TableCell>
                           <div>
                             <p className="font-medium">
-
-                              {applicant.author ? 
-                                  user?.role === 'administrator' 
-                                    ? `${applicant.author.first_name} ${applicant.author.last_name}`
-                                    : applicant.author.username
-                                  : "N/A"}
+                              {applicant.author
+                                ? user?.role === "administrator"
+                                  ? `${applicant.author.first_name} ${applicant.author.last_name}`
+                                  : applicant.author.username
+                                : "N/A"}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {applicant.created_at
@@ -249,7 +252,8 @@ const Applicants = ({ user }: ApplicantsProps) => {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {(user?.role === "administrator" || user?.id === applicant.author_id) && (
+                          {(user?.role === "administrator" ||
+                            user?.id === applicant.author_id) && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -259,19 +263,18 @@ const Applicants = ({ user }: ApplicantsProps) => {
                                 setIsEditDialogOpen(true);
                               }}
                             >
-                              Edit
+                              <Pencil className="h-4 w-4" />
                             </Button>
                           )}
                           {user?.role === "administrator" && (
                             <Button
-                              variant="outline"
+                              variant="destructive"
                               size="sm"
-                              className="text-red-500 hover:text-red-700"
                               onClick={() =>
                                 handleDeleteApplicant(applicant.id)
                               }
                             >
-                              Delete
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
                         </TableCell>
