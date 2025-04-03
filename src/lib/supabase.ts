@@ -110,6 +110,7 @@ export const getUserProfile = async (userId: string) => {
 };
 
 // Update user profile with service role to bypass RLS
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const updateUserProfile = async (userId: string, updates: any) => {
   return await supabaseAdmin
     .from('users')

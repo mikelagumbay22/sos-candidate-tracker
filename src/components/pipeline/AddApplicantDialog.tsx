@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Applicant } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AddApplicantDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export default function AddApplicantDialog({
   cardId,
   onApplicantAdded,
 }: AddApplicantDialogProps) {
+  const { user } = useAuth();
   const [selectedApplicantIds, setSelectedApplicantIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -66,10 +68,20 @@ export default function AddApplicantDialog({
       return;
     }
 
+    if (!user?.id) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase.from("pipeline_card_applicants").insert(
       selectedApplicantIds.map((applicantId) => ({
         card_id: cardId,
         applicant_id: applicantId,
+        author_id: user.id,
       }))
     );
 
