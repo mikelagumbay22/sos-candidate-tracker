@@ -77,31 +77,52 @@ export default function AddApplicantDialog({
       return;
     }
 
-    const { error } = await supabase.from("pipeline_card_applicants").insert(
-      selectedApplicantIds.map((applicantId) => ({
-        card_id: cardId,
-        applicant_id: applicantId,
-        author_id: user.id,
-      }))
-    );
+    try {
+      console.log("Adding applicants with data:", {
+        cardId,
+        applicantIds: selectedApplicantIds,
+        authorId: user.id
+      });
 
-    if (error) {
+      const { data, error } = await supabase
+        .from("pipeline_card_applicants")
+        .insert(
+          selectedApplicantIds.map((applicantId) => ({
+            card_id: cardId,
+            applicant_id: applicantId,
+            author_id: user.id,
+          }))
+        )
+        .select();
+
+      if (error) {
+        console.error("Error adding applicants:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to add applicants",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Successfully added applicants:", data);
+
+      toast({
+        title: "Success",
+        description: "Applicants added successfully",
+      });
+
+      onApplicantAdded();
+      onOpenChange(false);
+      setSelectedApplicantIds([]);
+    } catch (err) {
+      console.error("Unexpected error:", err);
       toast({
         title: "Error",
-        description: "Failed to add applicants",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Success",
-      description: "Applicants added successfully",
-    });
-
-    onApplicantAdded();
-    onOpenChange(false);
-    setSelectedApplicantIds([]);
   };
 
   return (
