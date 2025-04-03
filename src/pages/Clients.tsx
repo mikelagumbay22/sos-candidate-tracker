@@ -205,7 +205,7 @@ const Clients = ({ user }: ClientsProps) => {
             ) : filteredClients.length > 0 ? (
               <div className="bg-white rounded-md shadow overflow-hidden">
                 <Table>
-                  <TableHeader className="bg-[#A74D4A] text-white font-bold">
+                  <TableHeader className="bg-primary text-primary-foreground font-bold">
                     <TableRow>
                       <TableHead className="text-white">Name</TableHead>
                       <TableHead className="text-white">Company</TableHead>
