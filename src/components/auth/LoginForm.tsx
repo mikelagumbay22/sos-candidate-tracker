@@ -37,7 +37,7 @@ const LoginForm = () => {
         return;
       }
 
-      navigate("/");
+      navigate("/job-orders");
       toast({
         title: "Login successful",
         description: "Welcome back to the Roster Candidate Tracking System.",
