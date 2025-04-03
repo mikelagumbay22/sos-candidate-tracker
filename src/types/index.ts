@@ -4,7 +4,7 @@ export interface User {
   last_name: string;
   email: string;
   username: string;
-  role: 'recruiter' | 'administrator';
+  role: "recruiter" | "administrator";
   created_at?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
@@ -37,7 +37,18 @@ export interface JobOrder {
   created_at: string;
   updated_at?: string | null;
   schedule?: string;
-  status: 'kickoff' | 'Sourcing' | 'Internal Interview' | 'Internal Assessment' | 'Client Endorsement' | 'Client Assessment' | 'Client Interview' | 'Offer' | 'Hire' | 'On-hold' | 'Canceled';
+  status:
+    | "kickoff"
+    | "Sourcing"
+    | "Internal Interview"
+    | "Internal Assessment"
+    | "Client Endorsement"
+    | "Client Assessment"
+    | "Client Interview"
+    | "Offer"
+    | "Hire"
+    | "On-hold"
+    | "Canceled";
   job_description?: string;
   client_budget?: string;
   // Additional properties for UI
@@ -50,6 +61,14 @@ export interface JobOrder {
     email: string;
     phone?: string;
     location?: string;
+    sourcing_preference?:
+      | "LATAM"
+      | "Philippines"
+      | "India"
+      | "Europe"
+      | "South Africa"
+      | "Malaysia"
+      | "Global";
   };
 }
 
@@ -62,8 +81,15 @@ export interface JobOrderApplicant {
   updated_at?: string | null;
   interview_notes?: string;
   asking_salary?: number;
-  application_stage: 'Sourced' | 'Interview' | 'Assessment' | 'Client Endorsement' | 'Client Interview' | 'Offer' | 'Hired';
-  application_status: 'Pending' | 'Pass' | 'Fail';
+  application_stage:
+    | "Sourced"
+    | "Interview"
+    | "Assessment"
+    | "Client Endorsement"
+    | "Client Interview"
+    | "Offer"
+    | "Hired";
+  application_status: "Pending" | "Pass" | "Fail";
   client_feedback?: string;
   applicant_id?: string;
   applicant?: Applicant;
@@ -117,6 +143,32 @@ export interface AuthFormData {
 export interface ApplicantWithDetails extends JobOrderApplicant {
   applicant: Applicant;
   author: {
+    first_name: string;
+    last_name: string;
+    username: string;
+  };
+}
+
+export interface JobOrderWithClient {
+  id: string;
+  job_title: string;
+  client_id: string;
+  author_id: string;
+  status: string;
+  job_description: string | null;
+  schedule: string | null;
+  client_budget: string | null;
+  sourcing_preference: string[] | null;
+  created_at: string;
+  updated_at: string | null;
+  client: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    company: string;
+  };
+  author: {
+    id: string;
     first_name: string;
     last_name: string;
     username: string;

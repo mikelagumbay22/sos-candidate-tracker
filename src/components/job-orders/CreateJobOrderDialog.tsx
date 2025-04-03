@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Client {
   id: string;
@@ -33,13 +34,24 @@ interface CreateJobOrderDialogProps {
 }
 
 const formSchema = z.object({
-  job_title: z.string().min(3, { message: "Job title must be at least 3 characters" }),
-  client_id: z.string().min(1, { message: "Please select a client" }),
-  status: z.string().min(1, { message: "Please select a status" }),
-  job_description: z.any().optional(),
+  job_title: z.string().min(1, "Job title is required"),
+  client_id: z.string().min(1, "Client is required"),
+  status: z.string().min(1, "Status is required"),
+  job_description: z.any(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
+  sourcing_preference: z.array(z.string()).default([]),
 });
+
+const sourcingOptions = [
+  "LATAM",
+  "Philippines",
+  "India",
+  "Europe",
+  "South Africa",
+  "Malaysia",
+  "Global"
+];
 
 const CreateJobOrderDialog = ({ 
   open, 
@@ -50,16 +62,18 @@ const CreateJobOrderDialog = ({
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [sourcingPreferences, setSourcingPreferences] = useState<string[]>([]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       job_title: "",
       client_id: "",
-      status: "Kickoff",
+      status: "",
       job_description: null,
       schedule: "",
       client_budget: "",
+      sourcing_preference: [],
     },
   });
   
@@ -133,6 +147,7 @@ const CreateJobOrderDialog = ({
         job_description: jobDescriptionUrl,
         schedule: values.schedule || null,
         client_budget: values.client_budget || null,
+        sourcing_preference: sourcingPreferences,
       });
       
       if (error) throw error;
@@ -300,6 +315,52 @@ const CreateJobOrderDialog = ({
                   <FormControl>
                     <Input placeholder="e.g., $100,000 - $120,000" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="sourcing_preference"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Sourcing Preferences</FormLabel>
+                  <div className="grid grid-cols-2 gap-4">
+                    {sourcingOptions.map((option) => (
+                      <FormField
+                        key={option}
+                        control={form.control}
+                        name="sourcing_preference"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={option}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={sourcingPreferences.includes(option)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSourcingPreferences([...sourcingPreferences, option]);
+                                      field.onChange([...sourcingPreferences, option]);
+                                    } else {
+                                      setSourcingPreferences(sourcingPreferences.filter((item) => item !== option));
+                                      field.onChange(sourcingPreferences.filter((item) => item !== option));
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>{option}</FormLabel>
+                              </div>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

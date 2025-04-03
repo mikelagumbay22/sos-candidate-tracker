@@ -147,7 +147,6 @@ const EndorseApplicantDialog = ({
           <DialogTitle>Cross-endorse candidate to</DialogTitle>
           <DialogTitle>{jobOrder.job_title}</DialogTitle>
         </DialogHeader>
-        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {applicants.length > 0 ? (
@@ -157,14 +156,14 @@ const EndorseApplicantDialog = ({
                   name="applicant_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Select Applicant</FormLabel>
+                      <FormLabel>Select Candidate</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select an applicant" />
+                            <SelectValue placeholder="Select an candidate" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

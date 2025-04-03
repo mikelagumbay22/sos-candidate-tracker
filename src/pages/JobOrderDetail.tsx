@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import {
   User,
   JobOrder,
@@ -31,6 +31,7 @@ import {
   Pencil,
   Save,
   Loader2,
+  GitCompareArrows,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -72,6 +73,7 @@ interface JobOrderWithClient extends JobOrder {
     email: string;
     phone?: string;
   };
+  sourcing_preference: string[] | null;
 }
 
 interface JobOrderApplicantDialogProps {
@@ -100,7 +102,8 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
   );
   const [isProfilerDialogOpen, setIsProfilerDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedApplicant, setEditedApplicant] = useState<ApplicantWithDetails | null>(null);
+  const [editedApplicant, setEditedApplicant] =
+    useState<ApplicantWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -208,11 +211,17 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
       }
 
       // Sort applicants by first name and last name in ascending order
-      const sortedApplicants = [...(data as ApplicantWithDetails[])].sort((a, b) => {
-        const nameA = `${a.applicant?.first_name || ''} ${a.applicant?.last_name || ''}`.toLowerCase();
-        const nameB = `${b.applicant?.first_name || ''} ${b.applicant?.last_name || ''}`.toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
+      const sortedApplicants = [...(data as ApplicantWithDetails[])].sort(
+        (a, b) => {
+          const nameA = `${a.applicant?.first_name || ""} ${
+            a.applicant?.last_name || ""
+          }`.toLowerCase();
+          const nameB = `${b.applicant?.first_name || ""} ${
+            b.applicant?.last_name || ""
+          }`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        }
+      );
 
       setApplicants(sortedApplicants);
     } catch (error) {
@@ -277,13 +286,16 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
 
   const handleSaveChanges = async () => {
     if (!selectedApplicant || !editedApplicant) {
-      console.error("Missing required data:", { selectedApplicant, editedApplicant });
+      console.error("Missing required data:", {
+        selectedApplicant,
+        editedApplicant,
+      });
       return;
     }
 
     try {
       setIsLoading(true);
-      
+
       // Log the exact data we're sending
       console.log("Sending update with data:", {
         id: selectedApplicant.id,
@@ -343,9 +355,9 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
       console.log("Verified record after update:", verifyRecord);
 
       // Update the local state
-      setApplicants(prevApplicants => 
-        prevApplicants.map(applicant => 
-          applicant.id === selectedApplicant.id 
+      setApplicants((prevApplicants) =>
+        prevApplicants.map((applicant) =>
+          applicant.id === selectedApplicant.id
             ? { ...applicant, ...editedApplicant }
             : applicant
         )
@@ -491,27 +503,61 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                       </p>
                       <p>{jobOrder.schedule || "Not specified"}</p>
                     </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Maturity
+                      </p>
+                      <p>
+                        {jobOrder.created_at
+                          ? `${differenceInDays(
+                              new Date(),
+                              new Date(jobOrder.created_at)
+                            )} day/s`
+                          : "N/A"}
+                      </p>
+                    </div>
 
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Sourcing Preferences
+                      </p>
+                      {jobOrder.sourcing_preference &&
+                      jobOrder.sourcing_preference.length > 0 ? (
+                        <ul className="list-disc list-inside">
+                          {jobOrder.sourcing_preference.map(
+                            (preference, index) => (
+                              <li key={index} className="text-sm">
+                                {preference}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Not specified
+                        </p>
+                      )}
+                    </div>
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
                         Budget
                       </p>
                       <p>{jobOrder.client_budget || "Not specified"}</p>
                     </div>
-                  </div>
-                  <div className="mt-6">
-                    <p className="text-sm font-medium text-muted-foreground mb-1">
-                      Job Description
-                    </p>
-                    <div className="flex justify-start gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleViewJobDescription(jobOrder)}
-                      >
-                        <FileText className="h-4 w-4" />
-                        <span className="sr-only">View Job Description</span>
-                      </Button>
+                    <div className="mt-6">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Job Description
+                      </p>
+                      <div className="flex justify-start gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleViewJobDescription(jobOrder)}
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span className="sr-only">View Job Description</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -578,7 +624,7 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                     size="sm"
                     onClick={() => setIsEndorseOpen(true)}
                   >
-                    <Upload className="h-4 w-4 mr-1" />
+                    <GitCompareArrows className="h-4 w-4 mr-1" />
                     Cross-endorse Candidate
                   </Button>
 
@@ -601,6 +647,12 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                         </TableHead>
                         <TableHead className="text-start  text-white font-bold">
                           Contact
+                        </TableHead>
+                        <TableHead className="text-start  text-white font-bold">
+                          Resume
+                        </TableHead>
+                        <TableHead className="text-start  text-white font-bold">
+                          Profiler
                         </TableHead>
                         <TableHead className="text-center  text-white font-bold">
                           Stage
@@ -656,24 +708,76 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                               </p>
                             )}
                           </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewResume(applicant)}
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View Resume</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedApplicant(applicant);
+                                  setIsProfilerDialogOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">View Profiler</span>
+                              </Button>
+                            </div>
+                          </TableCell>
                           <TableCell className="text-center">
-                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                            {isEditing &&
+                            selectedApplicant?.id === applicant.id ? (
                               <Select
                                 value={editedApplicant.application_stage}
-                                onValueChange={(value: "Sourced" | "Interview" | "Assessment" | "Client Endorsement" | "Client Interview" | "Offer" | "Hired") => 
-                                  setEditedApplicant(prev => ({ ...prev, application_stage: value }))
+                                onValueChange={(
+                                  value:
+                                    | "Sourced"
+                                    | "Interview"
+                                    | "Assessment"
+                                    | "Client Endorsement"
+                                    | "Client Interview"
+                                    | "Offer"
+                                    | "Hired"
+                                ) =>
+                                  setEditedApplicant((prev) => ({
+                                    ...prev,
+                                    application_stage: value,
+                                  }))
                                 }
                               >
                                 <SelectTrigger className="w-[180px]">
                                   <SelectValue placeholder="Select stage" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Sourced">Sourced</SelectItem>
-                                  <SelectItem value="Internal Interview">Internal Interview </SelectItem>
-                                  <SelectItem value="Internal Assessment">Internal Assessment</SelectItem>
-                                  <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
-                                  <SelectItem value="Client Assessment">Client Assessment</SelectItem>
-                                  <SelectItem value="Client Interview">Client Interview</SelectItem>
+                                  <SelectItem value="Sourced">
+                                    Sourced
+                                  </SelectItem>
+                                  <SelectItem value="Internal Interview">
+                                    Internal Interview{" "}
+                                  </SelectItem>
+                                  <SelectItem value="Internal Assessment">
+                                    Internal Assessment
+                                  </SelectItem>
+                                  <SelectItem value="Client Endorsement">
+                                    Client Endorsement
+                                  </SelectItem>
+                                  <SelectItem value="Client Assessment">
+                                    Client Assessment
+                                  </SelectItem>
+                                  <SelectItem value="Client Interview">
+                                    Client Interview
+                                  </SelectItem>
                                   <SelectItem value="Offer">Offer</SelectItem>
                                   <SelectItem value="Hired">Hired</SelectItem>
                                 </SelectContent>
@@ -689,18 +793,26 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                             )}
                           </TableCell>
                           <TableCell className="text-center">
-                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                            {isEditing &&
+                            selectedApplicant?.id === applicant.id ? (
                               <Select
                                 value={editedApplicant.application_status}
-                                onValueChange={(value: "Pending" | "Pass" | "Fail") => 
-                                  setEditedApplicant(prev => ({ ...prev, application_status: value }))
+                                onValueChange={(
+                                  value: "Pending" | "Pass" | "Fail"
+                                ) =>
+                                  setEditedApplicant((prev) => ({
+                                    ...prev,
+                                    application_status: value,
+                                  }))
                                 }
                               >
                                 <SelectTrigger className="w-[180px]">
                                   <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Pending">Pending</SelectItem>
+                                  <SelectItem value="Pending">
+                                    Pending
+                                  </SelectItem>
                                   <SelectItem value="Pass">Pass</SelectItem>
                                   <SelectItem value="Fail">Fail</SelectItem>
                                 </SelectContent>
@@ -716,32 +828,36 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                             )}
                           </TableCell>
                           <TableCell className="text-center">
-                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                            {isEditing &&
+                            selectedApplicant?.id === applicant.id ? (
                               <Input
                                 type="number"
                                 value={editedApplicant.asking_salary || ""}
-                                onChange={(e) => 
-                                  setEditedApplicant(prev => ({ 
-                                    ...prev, 
-                                    asking_salary: e.target.value ? Number(e.target.value) : null 
+                                onChange={(e) =>
+                                  setEditedApplicant((prev) => ({
+                                    ...prev,
+                                    asking_salary: e.target.value
+                                      ? Number(e.target.value)
+                                      : null,
                                   }))
                                 }
                                 className="w-[180px]"
                               />
+                            ) : applicant.asking_salary ? (
+                              `$${applicant.asking_salary.toLocaleString()}`
                             ) : (
-                              applicant.asking_salary
-                                ? `$${applicant.asking_salary.toLocaleString()}`
-                                : "N/A"
+                              "N/A"
                             )}
                           </TableCell>
                           <TableCell className="text-center">
-                            {isEditing && selectedApplicant?.id === applicant.id ? (
+                            {isEditing &&
+                            selectedApplicant?.id === applicant.id ? (
                               <Textarea
                                 value={editedApplicant.client_feedback || ""}
-                                onChange={(e) => 
-                                  setEditedApplicant(prev => ({ 
-                                    ...prev, 
-                                    client_feedback: e.target.value 
+                                onChange={(e) =>
+                                  setEditedApplicant((prev) => ({
+                                    ...prev,
+                                    client_feedback: e.target.value,
                                   }))
                                 }
                                 className="w-[180px]"
@@ -752,7 +868,8 @@ const JobOrderDetail = ({ user }: JobOrderDetailProps) => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              {isEditing && selectedApplicant?.id === applicant.id ? (
+                              {isEditing &&
+                              selectedApplicant?.id === applicant.id ? (
                                 <Button
                                   variant="ghost"
                                   size="icon"
