@@ -47,8 +47,7 @@ const JobOrders = () => {
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [statusFilter]);
 
   const fetchJobOrders = async () => {
     try {
@@ -139,7 +138,7 @@ const JobOrders = () => {
                   <Select
                     value={statusFilter}
                     onValueChange={(value) => setStatusFilter(value)}
-                  >
+                    >
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />

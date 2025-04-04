@@ -47,7 +47,7 @@ const Favorites = () => {
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
-  }, [user]);
+  }, [user, statusFilter]);
 
   const fetchFavoriteJobOrders = async () => {
     try {
