@@ -306,6 +306,7 @@ const JobOrderDetail = () => {
         application_status: editedApplicant.application_status,
         asking_salary: editedApplicant.asking_salary,
         client_feedback: editedApplicant.client_feedback,
+        candidate_start_date: editedApplicant.candidate_start_date,
         updated_at: new Date().toISOString(),
       });
 
@@ -331,6 +332,7 @@ const JobOrderDetail = () => {
           application_status: editedApplicant.application_status,
           asking_salary: editedApplicant.asking_salary,
           client_feedback: editedApplicant.client_feedback,
+          candidate_start_date: editedApplicant.candidate_start_date,
           updated_at: new Date().toISOString(),
         })
         .eq("id", selectedApplicant.id)
@@ -672,6 +674,9 @@ const JobOrderDetail = () => {
                         <TableHead className="text-center  text-white font-bold">
                           Client Feedback
                         </TableHead>
+                        <TableHead className="text-center  text-white font-bold">
+                          Candidate Start Date
+                        </TableHead>
                         {user?.role === "administrator" && (
                         <TableHead className="text-center  text-white font-bold">
                           Edit
@@ -886,6 +891,25 @@ const JobOrderDetail = () => {
                               applicant.client_feedback || "N/A"
                             )}
                           </TableCell> 
+                          <TableCell className="text-center">
+                            {isEditing &&
+                            selectedApplicant?.id === applicant.id ? (
+                              <Input
+                                type="date"
+                                value={editedApplicant.candidate_start_date || ""}
+                                onChange={(e) =>
+                                  setEditedApplicant((prev) => ({
+                                    ...prev,
+                                    candidate_start_date: e.target.value,
+                                  }))
+                                }
+                                className="w-[180px]"
+                              />
+                            ) : (
+                              applicant.candidate_start_date || "N/A"
+                            )}
+                          </TableCell>  
+
                           {user?.role === 'administrator' && (
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
