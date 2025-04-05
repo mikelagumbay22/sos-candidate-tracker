@@ -2,7 +2,7 @@ import { formatDistanceToNowEST } from "@/lib/utils";
 import { JobOrder } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Star } from "lucide-react";
+import { Users, Star, FlagTriangleRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,12 +57,10 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
           .eq("user_id", user.id);
       } else {
         // Add to favorites
-        await supabase
-          .from("joborder_favorites")
-          .insert({
-            joborder_id: jobOrder.id,
-            user_id: user.id,
-          });
+        await supabase.from("joborder_favorites").insert({
+          joborder_id: jobOrder.id,
+          user_id: user.id,
+        });
       }
       setIsFavorite(!isFavorite);
     } catch (error) {
@@ -117,7 +115,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
             </Badge>
           </div>
 
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-col justify-between items-start gap-2 mt-4">
             <div className="flex items-center text-sm text-muted-foreground">
               <Users className="h-4 w-4 mr-1" />
               <span>{jobOrder.applicant_count || 0} candidates</span>
@@ -126,18 +124,27 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
             <div className="text-xs text-muted-foreground">
               Created {formattedDate}
             </div>
-          </div>
-        </div>
-
-        <div className="flex items-right text-sm text-muted-foreground text-right mt-2 justify-end pt-3">
-          <div 
-            className={`p-1 rounded-full ${isFavorite ? 'bg-[#A74D4A]' : ''}`}
-            onClick={toggleFavorite}
-          >
-            <Star 
-              className={`h-4 w-4 cursor-pointer ${isFavorite ? 'text-white' : 'text-gray-400'}`}
-              onClick={toggleFavorite}
-            />
+            <div className=" flex flex-row justify-between items-center w-full">
+              <div className="flex items-center text-sm text-muted-foreground">
+                <FlagTriangleRight className="h-4 w-4 mr-1" />
+                <span>{jobOrder.priority || "N/A"}</span>
+              </div>
+              <div className="flex items-right text-sm justify-center text-muted-foreground text-right">
+                <div
+                  className={`p-1 rounded-full ${
+                    isFavorite ? "bg-[#A74D4A]" : ""
+                  }`}
+                  onClick={toggleFavorite}
+                >
+                  <Star
+                    className={`h-4 w-4 cursor-pointer ${
+                      isFavorite ? "text-white" : "text-gray-400"
+                    }`}
+                    onClick={toggleFavorite}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>

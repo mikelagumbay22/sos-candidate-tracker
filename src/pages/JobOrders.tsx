@@ -19,6 +19,8 @@ import { toast } from "@/hooks/use-toast";
 import JobOrderCard from "@/components/job-orders/JobOrderCard";
 import CreateJobOrderDialog from "@/components/job-orders/CreateJobOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const JobOrders = () => {
   const { user } = useAuth();
@@ -26,6 +28,7 @@ const JobOrders = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showArchived, setShowArchived] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -47,7 +50,7 @@ const JobOrders = () => {
     return () => {
       supabase.removeChannel(jobOrderSubscription);
     };
-  }, [statusFilter]);
+  }, [statusFilter, showArchived]);
 
   const fetchJobOrders = async () => {
     try {
@@ -67,6 +70,9 @@ const JobOrders = () => {
       if (statusFilter !== "all") {
         query = query.eq("status", statusFilter);
       }
+
+      // Apply archive filter
+      query = query.eq("archived", showArchived);
 
       const { data, error } = await query;
 
@@ -138,7 +144,7 @@ const JobOrders = () => {
                   <Select
                     value={statusFilter}
                     onValueChange={(value) => setStatusFilter(value)}
-                    >
+                  >
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <div className="flex items-center gap-2">
                         <Filter className="h-4 w-4" />
@@ -170,6 +176,18 @@ const JobOrders = () => {
                       <SelectItem value="Canceled">Canceled</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {user?.role === 'administrator' && (
+                  <div className="flex items-center space-x-2">
+                    
+                    <Switch
+                      id="show-archived"
+                      checked={showArchived}
+                      onCheckedChange={setShowArchived}
+                    />
+                      <Label htmlFor="show-archived">Show Archived</Label>
+                    </div>
+                  )}
 
                   {user?.role === "administrator" && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -182,7 +200,7 @@ const JobOrders = () => {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-rows-1 md:grid-rows-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Card key={i} className="h-[200px]">
                     <CardContent className="p-6">
@@ -198,14 +216,35 @@ const JobOrders = () => {
                 ))}
               </div>
             ) : filteredJobOrders.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredJobOrders.map((job) => (
-                  <JobOrderCard
-                    key={job.id}
-                    jobOrder={job}
-                    onClick={() => handleCardClick(job.id)}
-                  />
-                ))}
+              <div className="grid grid-cols-3">
+                {["High", "Mid", "Low"].map((priority, index) => {
+                  const priorityJobs = filteredJobOrders.filter(
+                    (job) => job.priority === priority
+                  );
+                  if (priorityJobs.length === 0) return null;
+
+                  return (
+                    <div key={priority} className="relative">
+                      {index > 0 && (
+                        <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200" />
+                      )}
+                      <h3 className="text-lg font-semibold mb-4 capitalize p-2">
+                        {priority} Priority
+                      </h3>
+                      <div className="grid grid-rows-6 gap-2 w-full shadow-lg rounded-lg p-3 h-[calc(100vh-234px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent hover:scrollbar-thumb-gray-100">
+                        <div className="space-y-2">
+                          {priorityJobs.map((job) => (
+                            <JobOrderCard
+                              key={job.id}
+                              jobOrder={job}
+                              onClick={() => handleCardClick(job.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">

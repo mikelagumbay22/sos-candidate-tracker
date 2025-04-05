@@ -46,6 +46,10 @@ export interface JobOrder {
   created_at: string;
   updated_at?: string | null;
   schedule?: string;
+  priority?: string
+    | "Low"
+    | "Mid"
+    | "High";
   status:
     | "kickoff"
     | "Sourcing"
@@ -59,6 +63,7 @@ export interface JobOrder {
     | "On-hold"
     | "Canceled";
   job_description?: string;
+  archived?: boolean;
   client_budget?: string;
   // Additional properties for UI
   applicant_count?: number;
@@ -91,6 +96,7 @@ export interface JobOrderApplicant {
   updated_at?: string | null;
   interview_notes?: string;
   asking_salary?: number;
+  candidate_start_date?: string;
   application_stage:
     | "Sourced"
     | "Interview"
@@ -143,29 +149,25 @@ export interface DashboardStats {
 
 export interface JobOrderCommission {
   id: string;
-  joborder_id: string;
-  applicant_id: string;
-  author_id: string;
-  commission_amount: number;
-  deposit_date: string;
-  depositor_name: string;
-  transaction_receipt: string;
+  joborder_applicant_id: string;
+  current_commission: number;
+  received_commission: number;
+  commission_details: string;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  joborder?: {
-    title: string;
+  status: string;
+  joborder_applicant?: {
+    joborder?: {
+      job_title: string;
+    };
+    applicant?: {
+      first_name: string;
+      last_name: string;
+    };
+    candidate_start_date?: string;
   };
-  applicant?: {
-    first_name: string;
-    last_name: string;
-  };
-  user?: {
-    first_name: string;
-    last_name: string;
-  };
-} 
-
+}
 
 export interface JobOrderStatus {
   status: string;

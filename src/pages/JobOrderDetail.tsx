@@ -33,6 +33,9 @@ import {
   Loader2,
   GitCompareArrows,
   LinkedinIcon,
+  FlagTriangleRight,
+  Trash2,
+  Archive,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -108,6 +111,8 @@ const JobOrderDetail = () => {
   const [editedApplicant, setEditedApplicant] =
     useState<ApplicantWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -392,6 +397,101 @@ const JobOrderDetail = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!jobOrder) return;
+
+    try {
+      setIsDeleting(true);
+      console.log("Attempting to delete job order:", jobOrder.id);
+
+      // First, delete all related joborder_applicant records
+      const { error: deleteApplicantsError } = await supabase
+        .from("joborder_applicant")
+        .delete()
+        .eq("joborder_id", jobOrder.id);
+
+      if (deleteApplicantsError) {
+        console.error("Error deleting related applicants:", deleteApplicantsError);
+        throw deleteApplicantsError;
+      }
+
+      // Then delete the job order
+      const { error: deleteError } = await supabase
+        .from("joborder")
+        .delete()
+        .eq("id", jobOrder.id);
+
+      if (deleteError) {
+        console.error("Error deleting job order:", deleteError);
+        throw deleteError;
+      }
+
+      // Verify the deletion by checking if the job order still exists
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("joborder")
+        .select("id")
+        .eq("id", jobOrder.id);
+
+      if (verifyError) {
+        console.error("Error verifying deletion:", verifyError);
+        throw verifyError;
+      }
+
+      // If verifyData is empty array, the deletion was successful
+      if (verifyData && verifyData.length > 0) {
+        throw new Error("Job order still exists after deletion attempt");
+      }
+
+      toast({
+        title: "Success",
+        description: "Job order deleted successfully",
+      });
+      navigate("/job-orders");
+    } catch (error) {
+      console.error("Error in delete operation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete job order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!jobOrder) return;
+
+    try {
+      setIsArchiving(true);
+      const { error } = await supabase
+        .from("joborder")
+        .update({ archived: !jobOrder.archived })
+        .eq("id", jobOrder.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Job order ${
+          jobOrder.archived ? "unarchived" : "archived"
+        } successfully`,
+      });
+      fetchJobOrderDetails();
+    } catch (error) {
+      console.error("Error archiving job order:", error);
+      toast({
+        title: "Error",
+        description: `Failed to ${
+          jobOrder.archived ? "unarchive" : "archive"
+        } job order`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen">
@@ -417,7 +517,7 @@ const JobOrderDetail = () => {
       <div className="flex h-screen">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header  />
+          <Header />
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div className="max-w-7xl mx-auto text-center py-12">
               <h2 className="text-xl font-semibold mb-2">
@@ -440,10 +540,10 @@ const JobOrderDetail = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar  />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header  />
+        <Header />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
@@ -462,17 +562,42 @@ const JobOrderDetail = () => {
                 {jobOrder.job_title}
               </h2>
 
-              {user?.role === "administrator" && (
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="ml-2"
                   onClick={() => setIsEditDialogOpen(true)}
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-              )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleArchive}
+                  disabled={isArchiving}
+                >
+                  {isArchiving ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Archive className="h-4 w-4 mr-1" />
+                  )}
+                  {jobOrder.archived ? "Unarchive" : "Archive"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-1" />
+                  )}
+                  Delete
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -548,6 +673,12 @@ const JobOrderDetail = () => {
                         Budget
                       </p>
                       <p>{jobOrder.client_budget || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Priority
+                      </p>
+                      <p>{jobOrder.priority || "Not specified"}</p>
                     </div>
                     <div className="mt-6">
                       <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -678,9 +809,9 @@ const JobOrderDetail = () => {
                           Candidate Start Date
                         </TableHead>
                         {user?.role === "administrator" && (
-                        <TableHead className="text-center  text-white font-bold">
-                          Edit
-                        </TableHead>
+                          <TableHead className="text-center  text-white font-bold">
+                            Edit
+                          </TableHead>
                         )}
                       </TableRow>
                     </TableHeader>
@@ -738,8 +869,13 @@ const JobOrderDetail = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => window.open(applicant.applicant?.linkedin_profile, "_blank")}
-                              > 
+                                onClick={() =>
+                                  window.open(
+                                    applicant.applicant?.linkedin_profile,
+                                    "_blank"
+                                  )
+                                }
+                              >
                                 <LinkedinIcon className="h-4 w-4" />
                                 <span className="sr-only">View LinkedIn</span>
                               </Button>
@@ -890,13 +1026,15 @@ const JobOrderDetail = () => {
                             ) : (
                               applicant.client_feedback || "N/A"
                             )}
-                          </TableCell> 
+                          </TableCell>
                           <TableCell className="text-center">
                             {isEditing &&
                             selectedApplicant?.id === applicant.id ? (
                               <Input
                                 type="date"
-                                value={editedApplicant.candidate_start_date || ""}
+                                value={
+                                  editedApplicant.candidate_start_date || ""
+                                }
                                 onChange={(e) =>
                                   setEditedApplicant((prev) => ({
                                     ...prev,
@@ -908,42 +1046,44 @@ const JobOrderDetail = () => {
                             ) : (
                               applicant.candidate_start_date || "N/A"
                             )}
-                          </TableCell>  
-
-                          {user?.role === 'administrator' && (
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {isEditing &&
-                              selectedApplicant?.id === applicant.id ? (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={handleSaveChanges}
-                                  disabled={isLoading}
-                                >
-                                  {isLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Save className="h-4 w-4" />
-                                  )}
-                                  <span className="sr-only">Save Changes</span>
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    setSelectedApplicant(applicant);
-                                    setEditedApplicant(applicant);
-                                    setIsEditing(true);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                  <span className="sr-only">Edit Status</span>
-                                </Button>
-                              )}
-                            </div>
                           </TableCell>
+
+                          {user?.role === "administrator" && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                {isEditing &&
+                                selectedApplicant?.id === applicant.id ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={handleSaveChanges}
+                                    disabled={isLoading}
+                                  >
+                                    {isLoading ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Save className="h-4 w-4" />
+                                    )}
+                                    <span className="sr-only">
+                                      Save Changes
+                                    </span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setSelectedApplicant(applicant);
+                                      setEditedApplicant(applicant);
+                                      setIsEditing(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit Status</span>
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
                           )}
                         </TableRow>
                       ))}

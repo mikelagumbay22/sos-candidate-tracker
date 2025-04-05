@@ -5,8 +5,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +51,7 @@ const formSchema = z.object({
   job_title: z.string().min(1, "Job title is required"),
   client_id: z.string().min(1, "Client is required"),
   status: z.string().min(1, "Status is required"),
+  priority: z.string().min(1, "Priority is required"),
   job_description: z.any(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
@@ -50,25 +65,26 @@ const sourcingOptions = [
   "Europe",
   "South Africa",
   "Malaysia",
-  "Global"
+  "Global",
 ];
 
-const CreateJobOrderDialog = ({ 
-  open, 
-  onOpenChange, 
-  onSuccess, 
-  user 
+const CreateJobOrderDialog = ({
+  open,
+  onOpenChange,
+  onSuccess,
+  user,
 }: CreateJobOrderDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [sourcingPreferences, setSourcingPreferences] = useState<string[]>([]);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       job_title: "",
       client_id: "",
+      priority: "",
       status: "",
       job_description: null,
       schedule: "",
@@ -76,25 +92,25 @@ const CreateJobOrderDialog = ({
       sourcing_preference: [],
     },
   });
-  
+
   useEffect(() => {
     if (open) {
       fetchClients();
       form.reset();
     }
   }, [open, form]);
-  
+
   const fetchClients = async () => {
     try {
       const { data, error } = await supabase
         .from("clients")
         .select("id, first_name, last_name, company")
         .order("company", { ascending: true });
-        
+
       if (error) {
         throw error;
       }
-      
+
       setClients(data);
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -105,7 +121,7 @@ const CreateJobOrderDialog = ({
       });
     }
   };
-  
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!user) {
       toast({
@@ -115,33 +131,34 @@ const CreateJobOrderDialog = ({
       });
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
+
       let jobDescriptionUrl = null;
-      
+
       if (uploadedFile) {
-        const fileExt = uploadedFile.name.split('.').pop();
+        const fileExt = uploadedFile.name.split(".").pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('job-descriptions')
+          .from("job-descriptions")
           .upload(filePath, uploadedFile);
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('job-descriptions')
-          .getPublicUrl(filePath);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("job-descriptions").getPublicUrl(filePath);
 
         jobDescriptionUrl = publicUrl;
       }
-      
+
       const { error } = await supabase.from("joborder").insert({
         job_title: values.job_title,
         client_id: values.client_id,
+        priority: values.priority,
         author_id: user.id,
         status: values.status,
         job_description: jobDescriptionUrl,
@@ -149,14 +166,14 @@ const CreateJobOrderDialog = ({
         client_budget: values.client_budget || null,
         sourcing_preference: sourcingPreferences,
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: "Job order created successfully!",
       });
-      
+
       onSuccess();
       form.reset();
       setUploadedFile(null);
@@ -171,7 +188,7 @@ const CreateJobOrderDialog = ({
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -181,7 +198,7 @@ const CreateJobOrderDialog = ({
             Create a new job order to track open positions
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -191,21 +208,24 @@ const CreateJobOrderDialog = ({
                 <FormItem>
                   <FormLabel>Job Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Senior Frontend Developer" {...field} />
+                    <Input
+                      placeholder="e.g., Senior Frontend Developer"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="client_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -217,7 +237,8 @@ const CreateJobOrderDialog = ({
                       {clients.length > 0 ? (
                         clients.map((client) => (
                           <SelectItem key={client.id} value={client.id}>
-                            {client.first_name} {client.last_name} - {client.company}
+                            {client.first_name} {client.last_name} -{" "}
+                            {client.company}
                           </SelectItem>
                         ))
                       ) : (
@@ -231,15 +252,41 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Mid">Mid</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -250,11 +297,21 @@ const CreateJobOrderDialog = ({
                     <SelectContent>
                       <SelectItem value="Kickoff">Kickoff</SelectItem>
                       <SelectItem value="Sourcing">Sourcing</SelectItem>
-                      <SelectItem value="Internal Interview">Internal Interview</SelectItem>
-                      <SelectItem value="Internal Assessment">Internal Assessment</SelectItem>
-                      <SelectItem value="Client Endorsement">Client Endorsement</SelectItem>
-                      <SelectItem value="Client Assessment">Client Assessment</SelectItem>
-                      <SelectItem value="Client Interview">Client Interview</SelectItem>
+                      <SelectItem value="Internal Interview">
+                        Internal Interview
+                      </SelectItem>
+                      <SelectItem value="Internal Assessment">
+                        Internal Assessment
+                      </SelectItem>
+                      <SelectItem value="Client Endorsement">
+                        Client Endorsement
+                      </SelectItem>
+                      <SelectItem value="Client Assessment">
+                        Client Assessment
+                      </SelectItem>
+                      <SelectItem value="Client Interview">
+                        Client Interview
+                      </SelectItem>
                       <SelectItem value="Offer">Offer</SelectItem>
                       <SelectItem value="Hire">Hire</SelectItem>
                       <SelectItem value="On-hold">On-hold</SelectItem>
@@ -265,7 +322,7 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="job_description"
@@ -286,7 +343,8 @@ const CreateJobOrderDialog = ({
                         }}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Upload a PDF or Word document containing the job description
+                        Upload a PDF or Word document containing the job
+                        description
                       </p>
                     </div>
                   </FormControl>
@@ -294,7 +352,7 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="schedule"
@@ -308,7 +366,7 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="client_budget"
@@ -322,7 +380,7 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="sourcing_preference"
@@ -346,11 +404,25 @@ const CreateJobOrderDialog = ({
                                   checked={sourcingPreferences.includes(option)}
                                   onCheckedChange={(checked) => {
                                     if (checked) {
-                                      setSourcingPreferences([...sourcingPreferences, option]);
-                                      field.onChange([...sourcingPreferences, option]);
+                                      setSourcingPreferences([
+                                        ...sourcingPreferences,
+                                        option,
+                                      ]);
+                                      field.onChange([
+                                        ...sourcingPreferences,
+                                        option,
+                                      ]);
                                     } else {
-                                      setSourcingPreferences(sourcingPreferences.filter((item) => item !== option));
-                                      field.onChange(sourcingPreferences.filter((item) => item !== option));
+                                      setSourcingPreferences(
+                                        sourcingPreferences.filter(
+                                          (item) => item !== option
+                                        )
+                                      );
+                                      field.onChange(
+                                        sourcingPreferences.filter(
+                                          (item) => item !== option
+                                        )
+                                      );
                                     }
                                   }}
                                 />
@@ -368,7 +440,7 @@ const CreateJobOrderDialog = ({
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter>
               <Button
                 type="button"
