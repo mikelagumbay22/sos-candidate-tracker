@@ -141,6 +141,32 @@ export interface DashboardStats {
   pendingEndorsements: number;
 }
 
+export interface JobOrderCommission {
+  id: string;
+  joborder_id: string;
+  applicant_id: string;
+  author_id: string;
+  commission_amount: number;
+  deposit_date: string;
+  depositor_name: string;
+  transaction_receipt: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  joborder?: {
+    title: string;
+  };
+  applicant?: {
+    first_name: string;
+    last_name: string;
+  };
+  user?: {
+    first_name: string;
+    last_name: string;
+  };
+} 
+
+
 export interface JobOrderStatus {
   status: string;
   count: number;

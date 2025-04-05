@@ -32,7 +32,7 @@ import {
   Save,
   Loader2,
   GitCompareArrows,
-  Linkedin,
+  LinkedinIcon,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
@@ -259,7 +259,7 @@ const JobOrderDetail = () => {
       "Client Assessment": "bg-yellow-100 text-yellow-800",
       "Client Interview": "bg-pink-100 text-pink-800",
       Offer: "bg-orange-100 text-orange-800",
-      Hire: "bg-green-100 text-green-800",
+      Hired: "bg-green-100 text-green-800",
       "on-hold": "bg-gray-100 text-gray-800",
       cancelled: "bg-red-100 text-red-800",
     };
@@ -735,7 +735,7 @@ const JobOrderDetail = () => {
                                 size="icon"
                                 onClick={() => window.open(applicant.applicant?.linkedin_profile, "_blank")}
                               > 
-                                <Linkedin className="h-4 w-4" />
+                                <LinkedinIcon className="h-4 w-4" />
                                 <span className="sr-only">View LinkedIn</span>
                               </Button>
                             )}

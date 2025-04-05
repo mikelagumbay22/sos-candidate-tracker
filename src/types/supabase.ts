@@ -22,6 +22,7 @@ export interface Database {
           created_at: string
           updated_at: string | null
           deleted_at: string | null
+          linkedin_profile: string | null
         }
         Insert: {
           id: string
@@ -34,6 +35,7 @@ export interface Database {
           created_at?: string
           updated_at?: string | null
           deleted_at?: string | null
+          linkedin_profile?: string | null
         }
         Update: {
           id?: string
@@ -46,6 +48,7 @@ export interface Database {
           created_at?: string
           updated_at?: string | null
           deleted_at?: string | null
+          linkedin_profile?: string | null
         }
       }
       applicants: {

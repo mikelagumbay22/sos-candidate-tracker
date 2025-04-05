@@ -38,6 +38,7 @@ const formSchema = z.object({
   phone: z.string().optional(),
   location: z.string().optional(),
   cv_link: z.string().optional(),
+  linkedin_profile: z.string().optional(),
 });
 
 const CreateApplicantDialog = ({ 
@@ -59,6 +60,7 @@ const CreateApplicantDialog = ({
       phone: "",
       location: "",
       cv_link: "",
+      linkedin_profile: "",
     },
   });
   
@@ -139,6 +141,7 @@ const CreateApplicantDialog = ({
         location: values.location || null,
         cv_link: cvLink,
         author_id: user.id,
+        linkedin_profile: values.linkedin_profile || null,
       });
       
       if (error) throw error;
@@ -270,6 +273,19 @@ const CreateApplicantDialog = ({
                         </p>
                       )}
                     </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="linkedin_profile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn Profile</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

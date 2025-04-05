@@ -30,6 +30,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   phone: z.string().optional(),
   location: z.string().optional(),
+  linkedin_profile: z.string().optional(),
 });
 
 interface EditApplicantDialogProps {
@@ -55,6 +56,7 @@ const EditApplicantDialog = ({
       email: applicant.email,
       phone: applicant.phone || "",
       location: applicant.location || "",
+      linkedin_profile: applicant.linkedin_profile || "",
     },
   });
 
@@ -70,6 +72,7 @@ const EditApplicantDialog = ({
           email: values.email,
           phone: values.phone || null,
           location: values.location || null,
+          linkedin_profile: values.linkedin_profile || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", applicant.id);
@@ -161,6 +164,19 @@ const EditApplicantDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="linkedin_profile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn Profile</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>

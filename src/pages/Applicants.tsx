@@ -4,7 +4,7 @@ import Header from "@/components/dashboard/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, FileUser, Pencil, Trash2, Linkedin } from "lucide-react";
+import { Search, Plus, FileText, FileUser, Pencil, Trash2, LinkedinIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -222,7 +222,7 @@ export default function Applicants() {
                               size="icon"
                               onClick={() => window.open(applicant.linkedin_profile, "_blank")}
                             >
-                              <Linkedin className="h-4 w-4" />
+                              <LinkedinIcon className="h-4 w-4" />
                               <span className="sr-only">View LinkedIn</span>
                             </Button>
                           )}
