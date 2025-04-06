@@ -1,6 +1,6 @@
 import { User } from "@/types";
 import { useState } from "react";
-import Sidebar from "../dashboard/Sidebar";
+import Sidebar from "../layout/Sidebar";
 import { signOut } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";

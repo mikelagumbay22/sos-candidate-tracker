@@ -3,7 +3,7 @@ import { JobOrder } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Star, FlagTriangleRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -16,11 +16,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
   const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
 
-  useEffect(() => {
-    checkFavorite();
-  }, [jobOrder.id, user?.id]);
-
-  const checkFavorite = async () => {
+  const checkFavorite = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -41,7 +37,11 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
       console.error("Error checking favorite:", error);
       setIsFavorite(false);
     }
-  };
+  }, [jobOrder.id, user]);
+
+  useEffect(() => {
+    checkFavorite();
+  }, [checkFavorite]);
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click when clicking star

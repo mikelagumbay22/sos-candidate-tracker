@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { User } from "@/types";
 import { type JobOrderCommission } from "@/types";
 import { Layout } from "@/components/layout/Layout";
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign } from "lucide-react";
 import { formatCurrency, formatCurrencyPHP } from "@/lib/utils";
 import CommissionSummary from "@/components/commission/CommissionSummary";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface CommissionPageProps {
   user: User | null;
@@ -16,18 +18,14 @@ interface CommissionPageProps {
 
 const Commission = ({ user }: CommissionPageProps) => {
   const [commissions, setCommissions] = useState<JobOrderCommission[]>([]);
+  const [filteredCommissions, setFilteredCommissions] = useState<JobOrderCommission[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [adminUsers, setAdminUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCommission, setTotalCommission] = useState(0);
   const [pendingCommission, setPendingCommission] = useState(0);
 
-  useEffect(() => {
-    fetchCommissionData();
-    fetchAdminUsers();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchCommissionData = async () => {
+  const fetchCommissionData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -122,7 +120,34 @@ const Commission = ({ user }: CommissionPageProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchCommissionData();
+    fetchAdminUsers();
+  }, [fetchCommissionData]);
+
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredCommissions(commissions);
+      return;
+    }
+
+    const filtered = commissions.filter((commission) => {
+      const searchLower = searchTerm.toLowerCase();
+      const candidateName = `${commission.joborder_applicant?.applicant?.first_name || ""} ${commission.joborder_applicant?.applicant?.last_name || ""}`.toLowerCase();
+      const recruiterUsername = commission.joborder_applicant?.author?.username?.toLowerCase() || "";
+      const jobTitle = commission.joborder_applicant?.joborder?.job_title?.toLowerCase() || "";
+
+      return (
+        candidateName.includes(searchLower) ||
+        recruiterUsername.includes(searchLower) ||
+        jobTitle.includes(searchLower)
+      );
+    });
+
+    setFilteredCommissions(filtered);
+  }, [searchTerm, commissions]);
 
   const fetchAdminUsers = async () => {
     try {
@@ -154,9 +179,20 @@ const Commission = ({ user }: CommissionPageProps) => {
   return (
     <Layout pageTitle="Commission" user={user}>
       <div className="container mx-auto py-6">
-        <CommissionSummary commissions={commissions} />
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by candidate name, recruiter username, or job title..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        <CommissionSummary commissions={filteredCommissions} />
         <CommissionTable
-          commissions={commissions}
+          commissions={filteredCommissions}
           onUpdate={fetchCommissionData}
           adminUsers={adminUsers}
         />

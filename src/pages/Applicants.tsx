@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { User, Applicant } from "@/types";
-import Header from "@/components/dashboard/Header";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FileText, FileUser, Pencil, Trash2, LinkedinIcon } from "lucide-react";

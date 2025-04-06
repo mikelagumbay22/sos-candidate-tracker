@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
-import Header from "@/components/dashboard/Header";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
 import StatsCards from "@/components/dashboard/StatsCards";
 import ChartSection from "@/components/dashboard/ChartSection";
 
