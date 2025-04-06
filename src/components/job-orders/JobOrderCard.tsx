@@ -107,7 +107,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
       <CardContent className="p-6">
         <div>
           <div className="flex justify-between items-start">
-            <h3 className="font-semibold text-lg line-clamp-1">
+            <h3 className="font-semibold text-lg ">
               {jobOrder.job_title}
             </h3>
             <Badge className={getStatusColor(jobOrder.status)}>

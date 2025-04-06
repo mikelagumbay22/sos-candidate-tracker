@@ -24,6 +24,7 @@ const Commission = ({ user }: CommissionPageProps) => {
   useEffect(() => {
     fetchCommissionData();
     fetchAdminUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCommissionData = async () => {
