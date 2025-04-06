@@ -15,6 +15,7 @@ import {
   Trello,
   Star,
   DollarSign,
+  ClipboardList
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,6 +34,7 @@ const Sidebar = () => {
     { name: "Commission", href: "/commission", icon: DollarSign },
     { name: "Users", href: "/users", icon: Users, adminOnly: true },
     { name: "Clients", href: "/clients", icon: Building2, adminOnly: true },
+    { name: "Logs", href: "/logs", icon: ClipboardList, adminOnly: true },
   ];
 
   return (

@@ -135,17 +135,17 @@ const ChartSection = () => {
 
   const getStatusColor = (status: string): string => {
     const statusColors: Record<string, string> = {
-      Kickoff: "#D64541",  // Softer red for better contrast
-      Sourcing: "#00B3B3",  // Less neon cyan, easier on the eyes
-      "Internal Interview": "#CBA6F7",  // Slightly deeper purple
-      "Internal Assessment": "#A5B4FC",  // More saturated indigo
-      "Client Endorsement": "#FAD02E",  // Warmer yellow for better readability
-      "Client Assessment": "#FFDD75",  // Softer golden yellow
-      "Client Interview": "#F79AC0",  // More visible pink
-      Offer: "#FFB870",  // Warmer pastel orange
-      Hired: "#6FCF97",  // Balanced green for contrast
-      "On-Hold": "#BDBDBD",  // Neutral gray for better differentiation
-      Cancelled: "#EB5757"  // More readable red
+      Kickoff: "#D64541", // Softer red for better contrast
+      Sourcing: "#00B3B3", // Less neon cyan, easier on the eyes
+      "Internal Interview": "#CBA6F7", // Slightly deeper purple
+      "Internal Assessment": "#A5B4FC", // More saturated indigo
+      "Client Endorsement": "#FAD02E", // Warmer yellow for better readability
+      "Client Assessment": "#FFDD75", // Softer golden yellow
+      "Client Interview": "#F79AC0", // More visible pink
+      Offer: "#FFB870", // Warmer pastel orange
+      Hired: "#6FCF97", // Balanced green for contrast
+      "On-Hold": "#BDBDBD", // Neutral gray for better differentiation
+      Cancelled: "#EB5757", // More readable red
     };
 
     return statusColors[status] || "#6b7280"; // default gray
@@ -160,12 +160,8 @@ const ChartSection = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="job-stats">Job Order Status</TabsTrigger>
-            <TabsTrigger value="applicant-stats">
-              Candidates Per Job
-            </TabsTrigger>
-            <TabsTrigger value="completion-stats">
-              Avg. Completion Time
-            </TabsTrigger>
+            <TabsTrigger value="applicant-stats">Candidates Per Job</TabsTrigger>
+            <TabsTrigger value="completion-stats">Avg. Completion Time</TabsTrigger>
           </TabsList>
 
           <TabsContent value="job-stats" className="h-[300px]">

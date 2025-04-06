@@ -38,6 +38,7 @@ interface EditApplicantDialogProps {
   onOpenChange: (open: boolean) => void;
   applicant: Applicant;
   onSuccess: () => void;
+  user: User | null;
 }
 
 const EditApplicantDialog = ({
@@ -45,6 +46,7 @@ const EditApplicantDialog = ({
   onOpenChange,
   applicant,
   onSuccess,
+  user,
 }: EditApplicantDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -61,33 +63,50 @@ const EditApplicantDialog = ({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to edit an applicant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if the current user is the author of the applicant
+    if (user.id !== applicant.author_id) {
+      toast({
+        title: "Error",
+        description: "You can only edit applicants you created.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setIsLoading(true);
-
+      
       const { error } = await supabase
         .from("applicants")
         .update({
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
-          phone: values.phone || null,
+          phone: values.phone,
           location: values.location || null,
           linkedin_profile: values.linkedin_profile || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", applicant.id);
-
+      
       if (error) throw error;
-
+      
       toast({
         title: "Success",
         description: "Applicant updated successfully!",
       });
-
+      
       onSuccess();
-      onOpenChange(false);
     } catch (error) {
-      console.error("Error updating applicant:", error);
       toast({
         title: "Error",
         description: "Failed to update applicant. Please try again.",

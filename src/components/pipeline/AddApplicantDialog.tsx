@@ -35,7 +35,10 @@ export default function AddApplicantDialog({
   const { data: applicants, isLoading } = useQuery({
     queryKey: ["applicants", searchQuery],
     queryFn: async () => {
-      let query = supabase.from("applicants").select("*");
+      let query = supabase
+        .from("applicants")
+        .select("*")
+        .eq("author_id", user?.id);
 
       if (searchQuery) {
         query = query.or(

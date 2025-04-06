@@ -30,6 +30,7 @@ const Users = lazy(() => import("@/pages/Users"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Pipeline = lazy(() => import("@/pages/Pipeline"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Logs = lazy(() => import("@/pages/Logs"));
 const Favorites = lazy(() => import("@/pages/Favorites"));
 
 const queryClient = new QueryClient({
@@ -248,6 +249,15 @@ const App = () => {
                   <ProtectedRouteComponent>
                     <Commission user={user} />
                   </ProtectedRouteComponent>
+                }
+              />
+
+              <Route
+                path="/logs"
+                element={
+                  <ProtectedRouteComponent>
+                    <Logs user={user} />
+                    </ProtectedRouteComponent>
                 }
               />
 
