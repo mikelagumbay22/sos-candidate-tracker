@@ -125,8 +125,14 @@ const JobOrdersChart = () => {
         <CardTitle>Job Orders per Month</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <Bar data={chartData} options={options} />
+        <div className="h-[400px] overflow-y-auto">
+          <div className="min-h-full">
+            <Bar data={chartData} options={{
+              ...options,
+              maintainAspectRatio: false,
+              responsive: true
+            }} />
+          </div>
         </div>
       </CardContent>
     </Card>

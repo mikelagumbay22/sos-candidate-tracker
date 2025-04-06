@@ -25,9 +25,10 @@ export default function Dashboard() {
             
             <div className="mt-6 grid grid-cols-12 gap-4">
               <div className="col-span-12 xl:col-span-8 space-y-4">
-              <ChartSection />
-                <JobOrdersChart />
-                
+                <div className="min-h-[400px]">
+                  <JobOrdersChart />
+                </div>
+                <ChartSection />
               </div>
               
               <div className="col-span-12 xl:col-span-4 space-y-4">

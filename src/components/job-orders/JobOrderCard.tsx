@@ -104,9 +104,9 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
       onClick={onClick}
     >
       <CardContent className="p-6">
-        <div>
+        <div className="flex flex-col gap-2">
           <div className="flex justify-between items-start">
-            <h3 className="font-semibold text-lg ">
+            <h3 className="font-semibold text-lg line-clamp-2">
               {jobOrder.job_title}
             </h3>
             <Badge className={getStatusColor(jobOrder.status)}>
@@ -114,7 +114,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
             </Badge>
           </div>
 
-          <div className="flex flex-col justify-between items-start gap-2 mt-4">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center text-sm text-muted-foreground">
               <Users className="h-4 w-4 mr-1" />
               <span>{jobOrder.applicant_count || 0} candidates</span>
@@ -123,7 +123,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
             <div className="text-xs text-muted-foreground">
               Created {formattedDate}
             </div>
-            <div className=" flex flex-row justify-between items-center w-full">
+            <div className="flex flex-row justify-between items-center w-full">
               <div className="flex items-center text-sm text-muted-foreground">
                 <FlagTriangleRight className="h-4 w-4 mr-1" />
                 <span>{jobOrder.priority || "N/A"}</span>
