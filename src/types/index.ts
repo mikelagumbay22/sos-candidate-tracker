@@ -165,6 +165,9 @@ export interface JobOrderCommission {
       first_name: string;
       last_name: string;
     };
+    author?: {
+      username: string;
+    };
     candidate_start_date?: string;
   };
 }

@@ -1,14 +1,21 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
 // Use environment variables from the .env file
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://wnywlwahimhlfnxmwhsu.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueXdsd2FoaW1obGZueG13aHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM0OTU3ODQsImV4cCI6MjA1OTA3MTc4NH0._OMz-H4A_cILsKpuXD_ZjaI4yj1Q2LlZoBxspFwRovw';
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndueXdsd2FoaW1obGZueG13aHN1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzQ5NTc4NCwiZXhwIjoyMDU5MDcxNzg0fQ.C1mLVYK8QKzzbRjmit2ZfhtNLI_z1ZzUIeGYJ-KTMYc';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
-export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey);
+if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+// Create a singleton instance of the Supabase client
+const supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey);
+const supabaseAdminInstance = createClient<Database>(supabaseUrl, supabaseServiceKey);
+
+export const supabase = supabaseInstance;
+export const supabaseAdmin = supabaseAdminInstance;
 
 // Helper functions for authentication
 export const signIn = async (email: string, password: string) => {

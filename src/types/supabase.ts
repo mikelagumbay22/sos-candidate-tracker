@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -105,6 +104,7 @@ export interface Database {
           application_stage: string
           application_status: string
           client_feedback: string | null
+          candidate_start_date: string | null
         }
         Insert: {
           id?: string
@@ -118,6 +118,7 @@ export interface Database {
           application_stage: string
           application_status: string
           client_feedback?: string | null
+          candidate_start_date?: string | null
         }
         Update: {
           id?: string
@@ -131,6 +132,7 @@ export interface Database {
           application_stage?: string
           application_status?: string
           client_feedback?: string | null
+          candidate_start_date?: string | null
         }
       }
       joborder: {
@@ -143,8 +145,10 @@ export interface Database {
           updated_at: string | null
           schedule: string | null
           status: string
+          priority: string | null
           responsibilities_requirements: string | null
           client_budget: string | null
+          archived: boolean
         }
         Insert: {
           id?: string
@@ -155,8 +159,10 @@ export interface Database {
           updated_at?: string | null
           schedule?: string | null
           status: string
+          priority?: string | null
           responsibilities_requirements?: string | null
           client_budget?: string | null
+          archived?: boolean
         }
         Update: {
           id?: string
@@ -167,8 +173,10 @@ export interface Database {
           updated_at?: string | null
           schedule?: string | null
           status?: string
+          priority?: string | null
           responsibilities_requirements?: string | null
           client_budget?: string | null
+          archived?: boolean
         }
       }
       clients: {
@@ -212,6 +220,41 @@ export interface Database {
           location?: string | null
           company?: string
           updated_at?: string | null
+          deleted_at?: string | null
+        }
+      }
+      joborder_commission: {
+        Row: {
+          id: string
+          joborder_applicant_id: string
+          current_commission: number
+          received_commission: number
+          commission_details: string
+          status: string
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          joborder_applicant_id: string
+          current_commission: number
+          received_commission: number
+          commission_details?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          joborder_applicant_id?: string
+          current_commission?: number
+          received_commission?: number
+          commission_details?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
           deleted_at?: string | null
         }
       }

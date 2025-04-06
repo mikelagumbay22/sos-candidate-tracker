@@ -20,3 +20,19 @@ export function formatDistanceToNowEST(date: string | Date): string {
   const estDate = toZonedTime(new Date(date), "America/New_York")
   return formatDistanceToNow(estDate, { addSuffix: true })
 }
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount);
+};
+
+export function formatCurrencyPHP(amount: number): string {
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}

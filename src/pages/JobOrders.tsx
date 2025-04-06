@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, JobOrder } from "@/types";
 import Header from "@/components/dashboard/Header";
@@ -32,27 +32,7 @@ const JobOrders = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchJobOrders();
-
-    // Set up real-time subscription
-    const jobOrderSubscription = supabase
-      .channel("job-order-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "joborder" },
-        () => {
-          fetchJobOrders();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(jobOrderSubscription);
-    };
-  }, [statusFilter, showArchived]);
-
-  const fetchJobOrders = async () => {
+  const fetchJobOrders = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -107,7 +87,27 @@ const JobOrders = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, showArchived]);
+
+  useEffect(() => {
+    fetchJobOrders();
+
+    // Set up real-time subscription
+    const jobOrderSubscription = supabase
+      .channel("job-order-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "joborder" },
+        () => {
+          fetchJobOrders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(jobOrderSubscription);
+    };
+  }, [fetchJobOrders]);
 
   const handleCardClick = (jobId: string) => {
     navigate(`/job-orders/${jobId}`);

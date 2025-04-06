@@ -16,6 +16,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import React from "react";
+import Commission from "@/pages/Commission";
 
 // Lazy load pages
 const Login = lazy(() => import("@/pages/Login"));
@@ -237,6 +238,15 @@ const App = () => {
                 element={
                   <ProtectedRouteComponent>
                     <Settings />
+                  </ProtectedRouteComponent>
+                }
+              />
+
+              <Route
+                path="/commission"
+                element={
+                  <ProtectedRouteComponent>
+                    <Commission user={user} />
                   </ProtectedRouteComponent>
                 }
               />
