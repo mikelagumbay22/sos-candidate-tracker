@@ -78,12 +78,6 @@ export default function AddApplicantDialog({
     }
 
     try {
-      console.log("Adding applicants with data:", {
-        cardId,
-        applicantIds: selectedApplicantIds,
-        authorId: user.id
-      });
-
       const { data, error } = await supabase
         .from("pipeline_card_applicants")
         .insert(
@@ -96,7 +90,6 @@ export default function AddApplicantDialog({
         .select();
 
       if (error) {
-        console.error("Error adding applicants:", error);
         toast({
           title: "Error",
           description: error.message || "Failed to add applicants",
@@ -104,8 +97,6 @@ export default function AddApplicantDialog({
         });
         return;
       }
-
-      console.log("Successfully added applicants:", data);
 
       toast({
         title: "Success",
@@ -116,7 +107,6 @@ export default function AddApplicantDialog({
       onOpenChange(false);
       setSelectedApplicantIds([]);
     } catch (err) {
-      console.error("Unexpected error:", err);
       toast({
         title: "Error",
         description: "An unexpected error occurred",

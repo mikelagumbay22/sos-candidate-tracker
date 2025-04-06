@@ -44,9 +44,7 @@ export default function CardDetailsDialog({
   // Add debug logging
   useEffect(() => {
     if (open) {
-      console.log("Dialog opened with applicants:", applicants);
       if (applicants?.length > 0) {
-        console.log("First applicant structure:", applicants[0]);
       }
     }
   }, [open, applicants]);
@@ -69,9 +67,7 @@ export default function CardDetailsDialog({
           ) : applicants && applicants.length > 0 ? (
             <div className="space-y-2">
               {applicants.map((item) => {
-                console.log("Processing item:", item);
                 const applicantData = item.applicant;
-                console.log("Applicant data:", applicantData);
                 
                 if (!applicantData) return null;
                 

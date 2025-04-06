@@ -35,7 +35,6 @@ const ProfilerDialog = ({ open, onOpenChange, applicant, onSuccess }: ProfilerDi
   // Update form values when applicant changes
   useEffect(() => {
     if (applicant) {
-      console.log("Applicant data:", applicant);
       form.reset({
         interview_notes: applicant.interview_notes || "",
       });
@@ -47,7 +46,6 @@ const ProfilerDialog = ({ open, onOpenChange, applicant, onSuccess }: ProfilerDi
 
     try {
       setIsLoading(true);
-      console.log("Updating profiler for joborder_applicant id:", applicant.id);
 
       const { error } = await supabase
         .from("joborder_applicant")
@@ -58,7 +56,6 @@ const ProfilerDialog = ({ open, onOpenChange, applicant, onSuccess }: ProfilerDi
         .eq("id", applicant.id);
 
       if (error) {
-        console.error("Update error:", error);
         throw error;
       }
 
@@ -70,7 +67,6 @@ const ProfilerDialog = ({ open, onOpenChange, applicant, onSuccess }: ProfilerDi
       onSuccess();
       setIsEditing(false);
     } catch (error) {
-      console.error("Error updating profiler:", error);
       toast({
         title: "Error",
         description: "Failed to update profiler. Please try again.",

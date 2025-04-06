@@ -47,11 +47,6 @@ const JobOrderApplicantDialog = ({
     try {
       setIsLoading(true);
 
-      console.log("Updating joborder_applicant with data:", {
-        id: editedApplicant.id,
-        interview_notes: editedApplicant.interview_notes,
-      });
-
       // First, perform the update
       const { error: updateError } = await supabase
         .from("joborder_applicant")
@@ -62,7 +57,6 @@ const JobOrderApplicantDialog = ({
         .eq("id", editedApplicant.id);
 
       if (updateError) {
-        console.error("Update error:", updateError);
         throw updateError;
       }
 
@@ -84,15 +78,12 @@ const JobOrderApplicantDialog = ({
         .single();
 
       if (fetchError) {
-        console.error("Fetch error:", fetchError);
         throw fetchError;
       }
 
       if (!updatedData) {
         throw new Error("Failed to fetch updated data");
       }
-
-      console.log("Updated data:", updatedData);
 
       // Update local state with the fetched data
       setEditedApplicant(updatedData);
@@ -105,7 +96,6 @@ const JobOrderApplicantDialog = ({
       setIsEditing(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Error updating applicant:", error);
       toast({
         title: "Error",
         description:

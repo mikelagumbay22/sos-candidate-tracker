@@ -84,7 +84,6 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
     };
 
     const color = statusColors[status] || "bg-gray-100 text-gray-800";
-    console.log("Status:", status, "Color:", color);
     return color;
   };
 

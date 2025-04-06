@@ -304,17 +304,6 @@ const JobOrderDetail = () => {
     try {
       setIsLoading(true);
 
-      // Log the exact data we're sending
-      console.log("Sending update with data:", {
-        id: selectedApplicant.id,
-        application_stage: editedApplicant.application_stage,
-        application_status: editedApplicant.application_status,
-        asking_salary: editedApplicant.asking_salary,
-        client_feedback: editedApplicant.client_feedback,
-        candidate_start_date: editedApplicant.candidate_start_date,
-        updated_at: new Date().toISOString(),
-      });
-
       // First, verify the record exists
       const { data: existingRecord, error: fetchError } = await supabase
         .from("joborder_applicant")
@@ -326,8 +315,6 @@ const JobOrderDetail = () => {
         console.error("Error fetching record:", fetchError);
         throw fetchError;
       }
-
-      console.log("Found existing record:", existingRecord);
 
       // Perform the update
       const { data: updateResult, error: updateError } = await supabase
@@ -348,8 +335,6 @@ const JobOrderDetail = () => {
         throw updateError;
       }
 
-      console.log("Update result:", updateResult);
-
       // Verify the update
       const { data: verifyRecord, error: verifyError } = await supabase
         .from("joborder_applicant")
@@ -361,8 +346,6 @@ const JobOrderDetail = () => {
         console.error("Error verifying update:", verifyError);
         throw verifyError;
       }
-
-      console.log("Verified record after update:", verifyRecord);
 
       // Update the local state
       setApplicants((prevApplicants) =>
@@ -402,7 +385,6 @@ const JobOrderDetail = () => {
 
     try {
       setIsDeleting(true);
-      console.log("Attempting to delete job order:", jobOrder.id);
 
       // First, delete all related joborder_applicant records
       const { error: deleteApplicantsError } = await supabase

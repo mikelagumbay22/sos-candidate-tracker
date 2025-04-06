@@ -38,29 +38,17 @@ const JobOrders = () => {
 
       let query = supabase
         .from("joborder")
-        .select(
-          `
-          *,
-          clients(first_name, last_name, company)
-        `
-        )
+        .select(`*, clients(first_name, last_name, company)`)
         .order("created_at", { ascending: false });
 
-      // Apply status filter if not "all"
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
+      if (statusFilter !== "all") query = query.eq("status", statusFilter);
 
-      // Apply archive filter
       query = query.eq("archived", showArchived);
 
       const { data, error } = await query;
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Fetch applicant counts for each job order
       const jobOrdersWithCounts = await Promise.all(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (data || []).map(async (job: any) => {
@@ -92,16 +80,11 @@ const JobOrders = () => {
   useEffect(() => {
     fetchJobOrders();
 
-    // Set up real-time subscription
     const jobOrderSubscription = supabase
       .channel("job-order-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "joborder" },
-        () => {
-          fetchJobOrders();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "joborder" }, () => {
+        fetchJobOrders();
+      })
       .subscribe();
 
     return () => {
@@ -120,16 +103,14 @@ const JobOrders = () => {
   return (
     <div className="flex h-screen">
       <Sidebar />
-
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <h2 className="text-xl font-semibold">Job Orders</h2>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -140,68 +121,61 @@ const JobOrders = () => {
                   />
                 </div>
 
-                <div className="flex gap-2">
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) => setStatusFilter(value)}
-                  >
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Filter by status" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="Kickoff">Kickoff</SelectItem>
-                      <SelectItem value="Sourcing">Sourcing</SelectItem>
-                      <SelectItem value="Internal Interview">
-                        Internal Interview
+                <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      <SelectValue placeholder="Filter by status" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {[
+                      "Kickoff",
+                      "Sourcing",
+                      "Internal Interview",
+                      "Internal Assessment",
+                      "Client Endorsement",
+                      "Client Assessment",
+                      "Client Interview",
+                      "Offer",
+                      "Hire",
+                      "On-hold",
+                      "Canceled",
+                    ].map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
                       </SelectItem>
-                      <SelectItem value="Internal Assessment">
-                        Internal Assessment
-                      </SelectItem>
-                      <SelectItem value="Client Endorsement">
-                        Client Endorsement
-                      </SelectItem>
-                      <SelectItem value="Client Assessment">
-                        Client Assessment
-                      </SelectItem>
-                      <SelectItem value="Client Interview">
-                        Client Interview
-                      </SelectItem>
-                      <SelectItem value="Offer">Offer</SelectItem>
-                      <SelectItem value="Hire">Hire</SelectItem>
-                      <SelectItem value="On-hold">On-hold</SelectItem>
-                      <SelectItem value="Canceled">Canceled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {user?.role === 'administrator' && (
-                  <div className="flex items-center space-x-2">
-                    
-                    <Switch
-                      id="show-archived"
-                      checked={showArchived}
-                      onCheckedChange={setShowArchived}
-                    />
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {user?.role === "administrator" && (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="show-archived"
+                        checked={showArchived}
+                        onCheckedChange={setShowArchived}
+                      />
                       <Label htmlFor="show-archived">Show Archived</Label>
                     </div>
-                  )}
 
-                  {user?.role === "administrator" && (
                     <Button onClick={() => setIsCreateDialogOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       New Job
                     </Button>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             </div>
 
             {loading ? (
               <div className="grid grid-rows-1 md:grid-rows-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+                {[...Array(6)].map((_, i) => (
                   <Card key={i} className="h-[200px]">
                     <CardContent className="p-6">
                       <div className="w-2/3 h-6 bg-gray-200 animate-pulse rounded mb-4"></div>
@@ -216,7 +190,7 @@ const JobOrders = () => {
                 ))}
               </div>
             ) : filteredJobOrders.length > 0 ? (
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-3 gap-6">
                 {["High", "Mid", "Low"].map((priority, index) => {
                   const priorityJobs = filteredJobOrders.filter(
                     (job) => job.priority === priority
@@ -231,16 +205,14 @@ const JobOrders = () => {
                       <h3 className="text-lg font-semibold mb-4 capitalize p-2">
                         {priority} Priority
                       </h3>
-                      <div className="grid grid-rows-6 gap-2 w-full shadow-lg rounded-lg p-3 h-[calc(100vh-234px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent hover:scrollbar-thumb-gray-100">
-                        <div className="space-y-2">
-                          {priorityJobs.map((job) => (
-                            <JobOrderCard
-                              key={job.id}
-                              jobOrder={job}
-                              onClick={() => handleCardClick(job.id)}
-                            />
-                          ))}
-                        </div>
+                      <div className="grid gap-2 w-full shadow-lg rounded-lg p-3 h-[calc(100vh-234px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent hover:scrollbar-thumb-gray-100">
+                        {priorityJobs.map((job) => (
+                          <JobOrderCard
+                            key={job.id}
+                            jobOrder={job}
+                            onClick={() => handleCardClick(job.id)}
+                          />
+                        ))}
                       </div>
                     </div>
                   );
@@ -253,13 +225,15 @@ const JobOrders = () => {
                     ? "No job orders match your search criteria."
                     : "No job orders found. Create your first job order to get started."}
                 </p>
-                <Button
-                  className="mt-4"
-                  onClick={() => setIsCreateDialogOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Job Order
-                </Button>
+                {user?.role === "administrator" && (
+                  <Button
+                    className="mt-4"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Job Order
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -280,3 +254,4 @@ const JobOrders = () => {
 };
 
 export default JobOrders;
+

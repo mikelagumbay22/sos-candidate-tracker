@@ -57,8 +57,6 @@ export const PipelineCard = ({ card, onUpdate }: PipelineCardProps) => {
   } = useQuery({
     queryKey: ["pipeline-card-applicants", card.id],
     queryFn: async () => {
-      console.log("Fetching applicants for card:", card.id);
-      
       const { data, error } = await supabase
         .from("pipeline_card_applicants")
         .select(`
@@ -81,7 +79,6 @@ export const PipelineCard = ({ card, onUpdate }: PipelineCardProps) => {
         .order("added_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching applicants:", error);
         toast({
           title: "Error",
           description: "Failed to load applicants",
@@ -90,31 +87,10 @@ export const PipelineCard = ({ card, onUpdate }: PipelineCardProps) => {
         throw error;
       }
 
-      console.log("Full data with join:", data);
-      console.log("Number of applicants:", data?.length);
-      if (data?.length > 0) {
-        console.log("First applicant structure:", data[0]);
-      }
       return data || [];
     },
     enabled: !!card.id,
   });
-
-  // Add a debug effect to log when the dialog opens and when applicants change
-  useEffect(() => {
-    if (isCardDetailsDialogOpen) {
-      console.log("Dialog opened, applicants data:", applicants);
-      console.log("Number of applicants:", applicants?.length);
-      if (applicants?.length > 0) {
-        console.log("First applicant data:", applicants[0]);
-      }
-    }
-  }, [isCardDetailsDialogOpen, applicants]);
-
-  // Add a debug effect to log when the card changes
-  useEffect(() => {
-    console.log("Card changed:", card);
-  }, [card]);
 
   const handleRemoveApplicant = async (applicantId: string) => {
     const { error } = await supabase
