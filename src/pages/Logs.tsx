@@ -3,8 +3,8 @@ import { User } from "@/types";
 import { Layout } from "@/components/layout/Layout";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
-import  LogsTable from "@/components/logs/LogsTable";
-import  LogsFilterBar  from "@/components/logs/LogsFilterBar";
+import LogsTable from "@/components/log/LogsTable";
+import LogsFilterBar from "@/components/log/LogsFilterBar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
