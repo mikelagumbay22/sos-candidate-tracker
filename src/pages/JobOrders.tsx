@@ -205,7 +205,7 @@ const JobOrders = () => {
                       <h3 className="text-lg font-semibold mb-4 capitalize p-2">
                         {priority} Priority
                       </h3>
-                      <div className="grid gap-2 w-full shadow-lg rounded-lg p-3 h-[calc(100vh-234px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent hover:scrollbar-thumb-gray-100">
+                      <div className="grid grid-rows-6 gap-2 w-full shadow-lg rounded-lg p-3 h-[calc(100vh-234px)] overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-transparent hover:scrollbar-thumb-gray-100">
                         {priorityJobs.map((job) => (
                           <JobOrderCard
                             key={job.id}
