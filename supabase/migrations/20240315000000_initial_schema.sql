@@ -38,9 +38,12 @@ CREATE TABLE IF NOT EXISTS public.joborder (
   client_id UUID NOT NULL REFERENCES public.clients(id),
   author_id UUID NOT NULL REFERENCES public.users(id),
   status TEXT NOT NULL DEFAULT 'kickoff sourcing',
-  responsibilities_requirements TEXT,
+  job_description TEXT,
   schedule TEXT,
   client_budget TEXT,
+  sourcing_preference JSONB,
+  priority TEXT,
+  archived BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE
 );
@@ -55,6 +58,7 @@ CREATE TABLE IF NOT EXISTS public.applicants (
   phone TEXT,
   location TEXT,
   cv_link TEXT,
+  linkedin_profile VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE,
   deleted_at TIMESTAMP WITH TIME ZONE
@@ -72,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.joborder_applicant (
   interview_notes TEXT,
   asking_salary NUMERIC,
   client_feedback TEXT,
+  candidate_start_date DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE
 );

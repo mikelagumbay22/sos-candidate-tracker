@@ -46,6 +46,7 @@ export interface JobOrder {
   created_at: string;
   updated_at?: string | null;
   schedule?: string;
+  sourcing_preference: string[] | string | null;
   priority?: string
     | "Low"
     | "Mid"
@@ -75,14 +76,7 @@ export interface JobOrder {
     email: string;
     phone?: string;
     location?: string;
-    sourcing_preference?:
-      | "LATAM"
-      | "Philippines"
-      | "India"
-      | "Europe"
-      | "South Africa"
-      | "Malaysia"
-      | "Global";
+
   };
 }
 

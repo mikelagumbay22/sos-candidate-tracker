@@ -1,35 +1,18 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { JobOrder } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { format, toZonedTime } from "date-fns-tz";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState, useEffect } from "react";
+import { toZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
 
 interface EditJobOrderDialogProps {
   open: boolean;
@@ -39,14 +22,23 @@ interface EditJobOrderDialogProps {
 }
 
 const formSchema = z.object({
-  job_title: z
-    .string()
-    .min(3, { message: "Job title must be at least 3 characters" }),
+  job_title: z.string().min(3, { message: "Job title must be at least 3 characters" }),
   status: z.string().min(1, { message: "Please select a status" }),
   job_description: z.any().optional(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
+  sourcing_preference: z.array(z.string()).optional(),
 });
+
+const SOURCING_OPTIONS = [
+  "LATAM",
+  "Philippines",
+  "India",
+  "Europe",
+  "South Africa",
+  "Malaysia",
+  "Global",
+];
 
 const EditJobOrderDialog = ({
   open,
@@ -62,9 +54,13 @@ const EditJobOrderDialog = ({
     defaultValues: {
       job_title: jobOrder.job_title || "",
       status: jobOrder.status || "Kickoff",
-
       schedule: jobOrder.schedule || "",
       client_budget: jobOrder.client_budget || "",
+      sourcing_preference: Array.isArray(jobOrder.sourcing_preference) 
+        ? jobOrder.sourcing_preference 
+        : jobOrder.sourcing_preference 
+          ? [jobOrder.sourcing_preference] 
+          : [],
     },
   });
 
@@ -73,9 +69,13 @@ const EditJobOrderDialog = ({
       form.reset({
         job_title: jobOrder.job_title || "",
         status: jobOrder.status || "Kickoff",
-
         schedule: jobOrder.schedule || "",
         client_budget: jobOrder.client_budget || "",
+        sourcing_preference: Array.isArray(jobOrder.sourcing_preference) 
+          ? jobOrder.sourcing_preference 
+          : jobOrder.sourcing_preference 
+            ? [jobOrder.sourcing_preference] 
+            : [],
       });
     }
   }, [open, jobOrder, form]);
@@ -83,6 +83,10 @@ const EditJobOrderDialog = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
+
+      console.log("Form values:", values);
+      console.log("Original job order:", jobOrder);
+      console.log("Updating job order with ID:", jobOrder.id);
 
       let jobDescriptionUrl = jobOrder.job_description;
 
@@ -113,7 +117,6 @@ const EditJobOrderDialog = ({
           throw new Error(uploadError.message);
         }
 
-        // Get the public URL
         const {
           data: { publicUrl },
         } = supabase.storage.from("job-descriptions").getPublicUrl(filePath);
@@ -121,19 +124,30 @@ const EditJobOrderDialog = ({
         jobDescriptionUrl = publicUrl;
       }
 
-      const { error } = await supabase
-        .from("joborder")
-        .update({
-          job_title: values.job_title,
-          status: values.status,
-          job_description: jobDescriptionUrl,
-          schedule: values.schedule || null,
-          client_budget: values.client_budget || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", jobOrder.id);
+      const updateData = {
+        job_title: values.job_title,
+        status: values.status,
+        job_description: jobDescriptionUrl,
+        schedule: values.schedule || null,
+        client_budget: values.client_budget || null,
+        sourcing_preference: values.sourcing_preference || null,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      console.log("Update data being sent:", updateData);
+
+      const { data: updateResponse, error: updateError } = await supabase
+        .from("joborder")
+        .update(updateData)
+        .eq("id", jobOrder.id)
+        .select();
+
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw updateError;
+      }
+
+      console.log("Update response:", updateResponse);
 
       toast({
         title: "Success",
@@ -235,7 +249,6 @@ const EditJobOrderDialog = ({
                           const file = e.target.files?.[0];
                           if (file) {
                             setUploadedFile(file);
-                            field.onChange(file);
                           }
                         }}
                       />
@@ -279,6 +292,57 @@ const EditJobOrderDialog = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="sourcing_preference"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Sourcing Preference</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Select preferred locations for sourcing candidates
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SOURCING_OPTIONS.map((option) => (
+                      <FormField
+                        key={option}
+                        control={form.control}
+                        name="sourcing_preference"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={option}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(option)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, option])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== option
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {option}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button

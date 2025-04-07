@@ -149,6 +149,7 @@ export interface Database {
           responsibilities_requirements: string | null
           client_budget: string | null
           archived: boolean
+          sourcing_preference: string
         }
         Insert: {
           id?: string
@@ -163,6 +164,7 @@ export interface Database {
           responsibilities_requirements?: string | null
           client_budget?: string | null
           archived?: boolean
+          sourcing_preference?: string
         }
         Update: {
           id?: string
@@ -177,6 +179,7 @@ export interface Database {
           responsibilities_requirements?: string | null
           client_budget?: string | null
           archived?: boolean
+          sourcing_preference?: string
         }
       }
       clients: {
