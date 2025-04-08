@@ -92,7 +92,7 @@ export const getUserCount = async () => {
 // Generate username
 export const generateUsername = async (firstName: string) => {
   const count = await getUserCount();
-  const userNumber = (count + 1).toString().padStart(2, '0');
+  const userNumber = (count + 10).toString().padStart(2, '0');
   return `Recruiter${userNumber}`;
 };
 
