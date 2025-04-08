@@ -54,7 +54,7 @@ const Sidebar = () => {
           {!collapsed && (
             <span className="text-xl font-bold text-[#A74D4A]">
               <img
-                src="https://wnywlwahimhlfnxmwhsu.supabase.co/storage/v1/object/public/images//Roster%20Logo.png"
+                src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//SOS%20Logo.webp"
                 alt="Roster Logo"
                 className="w-40 "
               />
@@ -63,7 +63,7 @@ const Sidebar = () => {
           {collapsed && (
             <span className="text-xl font-bold  text-[#A74D4A]">
               <img
-                src="https://wnywlwahimhlfnxmwhsu.supabase.co/storage/v1/object/public/images//Roster%20Logo.png"
+                src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//favicon.png"
                 alt="Roster Logo"
                 className="w-10 "
               />

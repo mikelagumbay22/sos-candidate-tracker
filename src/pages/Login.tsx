@@ -3,17 +3,17 @@ import { Card } from "@/components/ui/card";
 
 const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full ">
         <div className="text-center">
           <img
-            src="https://wnywlwahimhlfnxmwhsu.supabase.co/storage/v1/object/public/images//Roster%20Logo.png"
+            src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//SOS%20Logo.webp"
             alt="Build with Roster Logo"
-            className="w-100 "
+            className="w-[450px]"
           />
         </div>
 
-        <Card className="p-6 shadow-lg border-t-4 border-t-[#A74D4A]">
+        <Card className="p-6 shadow-lg border-t-4 border-t-[#421820]">
           <LoginForm />
         </Card>
       </div>

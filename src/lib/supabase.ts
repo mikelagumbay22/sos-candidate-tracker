@@ -10,12 +10,30 @@ if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Create a singleton instance of the Supabase client
-const supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey);
-const supabaseAdminInstance = createClient<Database>(supabaseUrl, supabaseServiceKey);
+// Create a single auth instance with shared storage
+const authOptions = {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'supabase.auth.token',
+    storage: window.localStorage
+  }
+};
 
-export const supabase = supabaseInstance;
-export const supabaseAdmin = supabaseAdminInstance;
+// Create a single instance of the Supabase client
+const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, authOptions);
+
+// Create admin client with the same auth options but different storage key
+const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  ...authOptions,
+  auth: {
+    ...authOptions.auth,
+    storageKey: 'supabase.admin.auth.token'
+  }
+});
+
+export { supabase, supabaseAdmin };
 
 // Helper functions for authentication
 export const signIn = async (email: string, password: string) => {

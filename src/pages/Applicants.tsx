@@ -347,6 +347,7 @@ export default function Applicants() {
             onSuccess={() => {
               fetchApplicants();
             }}
+            user={user}
           />
         </>
       )}

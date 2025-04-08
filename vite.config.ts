@@ -27,7 +27,12 @@ export default defineConfig({
             "lucide-react",
           ],
           // Group Supabase related code
-          supabase: ["@supabase/supabase-js"],
+          supabase: [
+            "@supabase/supabase-js",
+            "@supabase/auth-helpers-react",
+            "@supabase/auth-ui-react",
+            "@supabase/auth-ui-shared"
+          ],
         },
       },
     },
@@ -41,6 +46,9 @@ export default defineConfig({
       "@tanstack/react-query",
       "date-fns",
       "@supabase/supabase-js",
+      "@supabase/auth-helpers-react",
+      "@supabase/auth-ui-react",
+      "@supabase/auth-ui-shared"
     ],
   },
 });

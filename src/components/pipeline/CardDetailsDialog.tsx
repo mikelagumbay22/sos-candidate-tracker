@@ -44,8 +44,7 @@ export default function CardDetailsDialog({
   // Add debug logging
   useEffect(() => {
     if (open) {
-      if (applicants?.length > 0) {
-      }
+      if (applicants?.length > 0) { /* empty */ }
     }
   }, [open, applicants]);
 

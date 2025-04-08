@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 interface AddApplicantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (data: any) => Promise<void>;
 }
 
@@ -54,7 +55,7 @@ const AddApplicantDialog = ({
     try {
       setLoading(true);
 
-      const { error } = await supabase()
+      const { error } = await supabase
         .from("applicant")
         .insert([formData]);
 

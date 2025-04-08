@@ -60,13 +60,11 @@ export default function Clients() {
 
       const { data, error } = await supabase
         .from("clients")
-        .select(
-          `
+        .select(`
           *,
-          author:users(first_name, last_name),
+          author:users!author_id(id, first_name, last_name),
           joborder(count)
-        `
-        )
+        `)
         .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
