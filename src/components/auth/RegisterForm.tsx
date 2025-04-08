@@ -229,7 +229,7 @@ const RegisterForm = () => {
 
         <Button
           type="submit"
-          className="w-full mt-2 bg-[#A74D4A] hover:bg-[#A74D4A]/90"
+          className="w-full mt-2 bg-[#421820] hover:bg-[#421820]/90"
           disabled={loading}
         >
           {loading ? "Creating Account..." : "Create Account"}
@@ -240,7 +240,7 @@ const RegisterForm = () => {
         Already have an account?{" "}
         <Link
           to="/login"
-          className="font-medium text-[#A74D4A] hover:text-[#A74D4A]/90"
+          className="font-medium text-[#421820] hover:text-[#421820]/90"
         >
           Sign in instead
         </Link>

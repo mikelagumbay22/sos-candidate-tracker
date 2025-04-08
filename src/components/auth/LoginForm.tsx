@@ -40,7 +40,7 @@ const LoginForm = () => {
       navigate("/job-orders");
       toast({
         title: "Login successful",
-        description: "Welcome back to the Roster Candidate Tracking System.",
+        description: "Welcome back to the SOS Candidate Tracking System.",
       });
     } catch (err) {
       console.error("Login error:", err);
@@ -78,7 +78,7 @@ const LoginForm = () => {
 
   return (
     <div className="w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+      <h2 className="text-3xl font-bold text-center mb-6 text-[#421820]">
         Sign In
       </h2>
       <p className="text-center text-gray-600 mb-8">
@@ -114,7 +114,7 @@ const LoginForm = () => {
             <Label htmlFor="password">Password</Label>
             <button
               onClick={handleForgotPassword}
-              className="text-sm text-[#A74D4A] hover:text-[#A74D4A]/90"
+              className="text-sm text-[#421820] hover:text-[#421820]/90"
             >
               Forgot password?
             </button>
@@ -146,7 +146,7 @@ const LoginForm = () => {
 
         <Button
           type="submit"
-          className="w-full bg-[#A74D4A] hover:bg-[#A74D4A]/90"
+          className="w-full bg-[#421820] hover:bg-[#421820]/90"
           disabled={loading}
         >
           {loading ? "Signing in..." : "Sign in"}
@@ -157,7 +157,7 @@ const LoginForm = () => {
         Don't have an account?{" "}
         <Link
           to="/register"
-          className="font-medium text-[#A74D4A] hover:text-[#A74D4A]/90"
+          className="font-medium text-[#421820] hover:text-[#421820]/90"
         >
           Register now
         </Link>

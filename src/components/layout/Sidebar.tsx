@@ -55,7 +55,7 @@ const Sidebar = () => {
             <span className="text-xl font-bold text-[#A74D4A]">
               <img
                 src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//SOS%20Logo.webp"
-                alt="Roster Logo"
+                alt="SOS Logo"
                 className="w-40 "
               />
             </span>
@@ -64,7 +64,7 @@ const Sidebar = () => {
             <span className="text-xl font-bold  text-[#A74D4A]">
               <img
                 src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//favicon.png"
-                alt="Roster Logo"
+                alt="SOS Logo"
                 className="w-10 "
               />
             </span>

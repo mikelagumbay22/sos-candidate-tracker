@@ -7,8 +7,8 @@ const Register = () => {
       <div className="max-w-md w-full ">
         <div className="text-center">
           <img
-            src="https://wnywlwahimhlfnxmwhsu.supabase.co/storage/v1/object/public/images//Roster%20Logo.png"
-            alt="Build with Roster Logo"
+            src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//SOS%20Logo.webp"
+            alt="SOS Logo"
             className="w-100 "
           />
         </div>
