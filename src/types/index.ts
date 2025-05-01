@@ -27,6 +27,7 @@ export interface Applicant {
   phone?: string;
   location?: string;
   cv_link?: string;
+  has_emails?: boolean | null
   linkedin_profile?: string;
   updated_at?: string | null;
   deleted_at?: string | null;
@@ -47,6 +48,7 @@ export interface JobOrder {
   updated_at?: string | null;
   schedule?: string;
   sourcing_preference: string[] | string | null;
+  updates?: string;
   priority?: string
     | "Low"
     | "Mid"

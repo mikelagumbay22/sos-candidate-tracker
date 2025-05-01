@@ -63,6 +63,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
+import EditNotesDialog from "@/components/job-orders/EditNotesDialog";
 
 interface JobOrderDetailProps {
   user: User | null;
@@ -166,14 +167,10 @@ const JobOrderDetail = () => {
     try {
       setLoading(true);
 
+      // Build the query based on user role
       const { data, error } = await supabase
         .from("joborder")
-        .select(
-          `
-          *,
-          clients(*)
-        `
-        )
+        .select(user?.role !== "recruiter" ? `*, clients(*)` : `*`)
         .eq("id", id)
         .single();
 
@@ -181,7 +178,11 @@ const JobOrderDetail = () => {
         throw error;
       }
 
-      setJobOrder(data as JobOrderWithClient);
+      if (!data) {
+        throw new Error("No job order found");
+      }
+
+      setJobOrder(data as unknown as JobOrderWithClient);
     } catch (error) {
       console.error("Error fetching job order details:", error);
       toast({
@@ -385,43 +386,34 @@ const JobOrderDetail = () => {
 
     try {
       setIsDeleting(true);
+      const now = new Date().toISOString();
 
-      // First, delete all related joborder_applicant records
-      const { error: deleteApplicantsError } = await supabase
+      // First, soft delete all related joborder_applicant records
+      const { error: updateApplicantsError } = await supabase
         .from("joborder_applicant")
-        .delete()
+        .update({
+          deleted_at: now,
+          updated_at: now
+        })
         .eq("joborder_id", jobOrder.id);
 
-      if (deleteApplicantsError) {
-        console.error("Error deleting related applicants:", deleteApplicantsError);
-        throw deleteApplicantsError;
+      if (updateApplicantsError) {
+        console.error("Error soft deleting related applicants:", updateApplicantsError);
+        throw updateApplicantsError;
       }
 
-      // Then delete the job order
-      const { error: deleteError } = await supabase
+      // Then soft delete the job order
+      const { error: updateJobOrderError } = await supabase
         .from("joborder")
-        .delete()
+        .update({
+          deleted_at: now,
+          updated_at: now
+        })
         .eq("id", jobOrder.id);
 
-      if (deleteError) {
-        console.error("Error deleting job order:", deleteError);
-        throw deleteError;
-      }
-
-      // Verify the deletion by checking if the job order still exists
-      const { data: verifyData, error: verifyError } = await supabase
-        .from("joborder")
-        .select("id")
-        .eq("id", jobOrder.id);
-
-      if (verifyError) {
-        console.error("Error verifying deletion:", verifyError);
-        throw verifyError;
-      }
-
-      // If verifyData is empty array, the deletion was successful
-      if (verifyData && verifyData.length > 0) {
-        throw new Error("Job order still exists after deletion attempt");
+      if (updateJobOrderError) {
+        console.error("Error soft deleting job order:", updateJobOrderError);
+        throw updateJobOrderError;
       }
 
       toast({
@@ -477,9 +469,9 @@ const JobOrderDetail = () => {
   if (loading) {
     return (
       <div className="flex h-screen">
-        <Sidebar />
+        <Sidebar user={user} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
+          <Header user={user} />
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div className="max-w-7xl mx-auto">
               <div className="animate-pulse space-y-4">
@@ -497,9 +489,9 @@ const JobOrderDetail = () => {
   if (!jobOrder) {
     return (
       <div className="flex h-screen">
-        <Sidebar />
+        <Sidebar user={user} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
+          <Header user={user} />
           <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div className="max-w-7xl mx-auto text-center py-12">
               <h2 className="text-xl font-semibold mb-2">
@@ -522,10 +514,10 @@ const JobOrderDetail = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar user={user} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header user={user} />
 
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
@@ -676,6 +668,23 @@ const JobOrderDetail = () => {
                           <span className="sr-only">View Job Description</span>
                         </Button>
                       </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Notes / Updates
+                        </p>
+                        {user?.role === 'administrator' && (
+                        <EditNotesDialog
+                          jobOrderId={jobOrder.id}
+                          currentNotes={jobOrder.updates || ""}
+                          onSuccess={() => {
+                            fetchJobOrderDetails();
+                          }}
+                        />
+                        )}
+                      </div>
+                      <p>{jobOrder.updates || "Not specified"}</p>
                     </div>
                   </div>
                 </CardContent>

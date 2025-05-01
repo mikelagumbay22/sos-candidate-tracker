@@ -21,12 +21,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut, updateUserProfile } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
 import { User } from "@/types";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import RecentUpdatesDialog from "@/components/updates/RecentUpdatesDialog";
 
-const Header = () => {
-  const { user } = useAuth();
+interface HeaderProps {
+  user: User | null;
+}
+
+const Header: React.FC<HeaderProps> = ({ user }) => {
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -97,11 +102,13 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        <RecentUpdatesDialog />
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
             {user?.username || "User"}
           </h1>
         </div>
+
         <div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

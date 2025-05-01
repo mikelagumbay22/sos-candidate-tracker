@@ -35,6 +35,7 @@ const applicantFormSchema = z.object({
   phone: z.string().optional(),
   location: z.string().optional(),
   cv_link: z.string().optional(),
+  linkedin_profile: z.string().optional(),
 });
 
 const applicationFormSchema = z.object({
@@ -63,6 +64,7 @@ const AddApplicantDialog = ({
       phone: "",
       location: "",
       cv_link: "",
+      linkedin_profile: "",
     },
   });
   
@@ -220,7 +222,8 @@ const AddApplicantDialog = ({
           email: applicantValues.email,
           phone: applicantValues.phone || null,
           location: applicantValues.location || null,
-          cv_link: cvLink,
+          cv_link: applicantValues.cv_link || null,
+          linkedin_profile: applicantValues.linkedin_profile || null,
           author_id: user.id,
         })
         .select("id")
@@ -272,7 +275,10 @@ const AddApplicantDialog = ({
       if (!value) resetForms();
       onOpenChange(value);
     }}>
-      <DialogContent className="max-w-md">
+      <DialogContent aria-describedby="dialog-description">
+        <p id="dialog-description" className="sr-only">
+          Description of dialog content
+        </p>
         <DialogHeader>
           <DialogTitle>Add New Candidate</DialogTitle>
         </DialogHeader>
@@ -345,6 +351,20 @@ const AddApplicantDialog = ({
                   <FormLabel>Location</FormLabel>
                   <FormControl>
                     <Input placeholder="City, Country" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={applicantForm.control}
+              name="linkedin_profile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LinkedIn Profile</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

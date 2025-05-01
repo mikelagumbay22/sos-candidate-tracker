@@ -36,9 +36,15 @@ const JobOrders = () => {
     try {
       setLoading(true);
 
+      // Conditionally build the select statement based on user role
+      const selectQuery = user?.role === "recruiter" 
+        ? "*" // Only select joborder fields for recruitment role
+        : `*, clients(first_name, last_name, company)`; // Select with client details for other roles
+
       let query = supabase
         .from("joborder")
-        .select(`*, clients(first_name, last_name, company)`)
+        .select(selectQuery)
+        .is('deleted_at', null)
         .order("created_at", { ascending: false });
 
       if (statusFilter !== "all") query = query.eq("status", statusFilter);
@@ -55,7 +61,8 @@ const JobOrders = () => {
           const { count } = await supabase
             .from("joborder_applicant")
             .select("*", { count: "exact", head: true })
-            .eq("joborder_id", job.id);
+            .eq("joborder_id", job.id)
+            .is('deleted_at', null);
 
           return {
             ...job,
@@ -75,7 +82,7 @@ const JobOrders = () => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, showArchived]);
+  }, [statusFilter, showArchived, user?.role]);
 
   useEffect(() => {
     fetchJobOrders();
@@ -102,9 +109,9 @@ const JobOrders = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar user={user} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header user={user} />
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">

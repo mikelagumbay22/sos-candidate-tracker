@@ -1,11 +1,30 @@
 import { JobOrder } from "@/types";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,13 +41,18 @@ interface EditJobOrderDialogProps {
 }
 
 const formSchema = z.object({
-  job_title: z.string().min(3, { message: "Job title must be at least 3 characters" }),
+  job_title: z
+    .string()
+    .min(3, { message: "Job title must be at least 3 characters" }),
   status: z.string().min(1, { message: "Please select a status" }),
+  priority: z.string().min(1, { message: "Please select a priority" }),
   job_description: z.any().optional(),
   schedule: z.string().optional(),
   client_budget: z.string().optional(),
   sourcing_preference: z.array(z.string()).optional(),
 });
+
+const PRIORITY_OPTIONS = ["Low", "Mid", "High"];
 
 const SOURCING_OPTIONS = [
   "LATAM",
@@ -54,13 +78,14 @@ const EditJobOrderDialog = ({
     defaultValues: {
       job_title: jobOrder.job_title || "",
       status: jobOrder.status || "Kickoff",
+      priority: jobOrder.priority || "Medium",
       schedule: jobOrder.schedule || "",
       client_budget: jobOrder.client_budget || "",
-      sourcing_preference: Array.isArray(jobOrder.sourcing_preference) 
-        ? jobOrder.sourcing_preference 
-        : jobOrder.sourcing_preference 
-          ? [jobOrder.sourcing_preference] 
-          : [],
+      sourcing_preference: Array.isArray(jobOrder.sourcing_preference)
+        ? jobOrder.sourcing_preference
+        : jobOrder.sourcing_preference
+        ? [jobOrder.sourcing_preference]
+        : [],
     },
   });
 
@@ -69,13 +94,14 @@ const EditJobOrderDialog = ({
       form.reset({
         job_title: jobOrder.job_title || "",
         status: jobOrder.status || "Kickoff",
+        priority: jobOrder.priority || "Medium",
         schedule: jobOrder.schedule || "",
         client_budget: jobOrder.client_budget || "",
-        sourcing_preference: Array.isArray(jobOrder.sourcing_preference) 
-          ? jobOrder.sourcing_preference 
-          : jobOrder.sourcing_preference 
-            ? [jobOrder.sourcing_preference] 
-            : [],
+        sourcing_preference: Array.isArray(jobOrder.sourcing_preference)
+          ? jobOrder.sourcing_preference
+          : jobOrder.sourcing_preference
+          ? [jobOrder.sourcing_preference]
+          : [],
       });
     }
   }, [open, jobOrder, form]);
@@ -127,6 +153,7 @@ const EditJobOrderDialog = ({
       const updateData = {
         job_title: values.job_title,
         status: values.status,
+        priority: values.priority,
         job_description: jobDescriptionUrl,
         schedule: values.schedule || null,
         client_budget: values.client_budget || null,
@@ -236,6 +263,31 @@ const EditJobOrderDialog = ({
 
             <FormField
               control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Priority</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PRIORITY_OPTIONS.map((priority) => (
+                        <SelectItem key={priority} value={priority}>
+                          {priority}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="job_description"
               render={({ field }) => (
                 <FormItem>
@@ -299,7 +351,9 @@ const EditJobOrderDialog = ({
               render={() => (
                 <FormItem>
                   <div className="mb-4">
-                    <FormLabel className="text-base">Sourcing Preference</FormLabel>
+                    <FormLabel className="text-base">
+                      Sourcing Preference
+                    </FormLabel>
                     <p className="text-sm text-muted-foreground">
                       Select preferred locations for sourcing candidates
                     </p>

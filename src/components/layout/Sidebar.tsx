@@ -19,8 +19,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Sidebar = () => {
-  const { user } = useAuth();
+interface SidebarProps {
+  user: User | null;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ user }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const isAdmin = user?.role === "administrator";
@@ -55,7 +58,7 @@ const Sidebar = () => {
             <span className="text-xl font-bold text-[#A74D4A]">
               <img
                 src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//SOS%20Logo.webp"
-                alt="SOS Logo"
+                alt="Roster Logo"
                 className="w-40 "
               />
             </span>
@@ -64,7 +67,7 @@ const Sidebar = () => {
             <span className="text-xl font-bold  text-[#A74D4A]">
               <img
                 src="https://muiubouxyyiweauhciff.supabase.co/storage/v1/object/public/images//favicon.png"
-                alt="SOS Logo"
+                alt="Roster Logo"
                 className="w-10 "
               />
             </span>
