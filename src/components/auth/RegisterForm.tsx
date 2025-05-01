@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signUp, generateUsername, insertUserData } from "@/lib/supabase";
+import { signUp, generateUsername } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,9 +54,9 @@ const RegisterForm = () => {
 
     try {
       // Generate username
-      const username = await generateUsername(formData.first_name || "");
+      const username = await generateUsername(formData.first_name);
 
-      // Register user with Supabase Auth
+      // Register user with Supabase Auth - the trigger will automatically create the public user profile
       const { data, error: signUpError } = await signUp(
         formData.email,
         formData.password || "",
@@ -74,16 +74,6 @@ const RegisterForm = () => {
       }
 
       if (data.user) {
-        // Insert user data into users table
-        await insertUserData({
-          id: data.user.id,
-          first_name: formData.first_name || "",
-          last_name: formData.last_name || "",
-          email: formData.email,
-          username,
-          role: "recruiter",
-        });
-
         toast({
           title: "Registration successful",
           description: "Your account has been created.",
@@ -92,12 +82,9 @@ const RegisterForm = () => {
         // Redirect to login page
         navigate("/login");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      console.error("Registration error:", err);
-      setError(
-        err.message || "An unexpected error occurred. Please try again."
-      );
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("Failed to create account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -105,17 +92,17 @@ const RegisterForm = () => {
 
   return (
     <div className="w-full max-w-md">
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-        Create an account
-      </h2>
-      <p className="text-center text-gray-600 mb-8"></p>
-
+      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Create an Account</h2>
+      <p className="text-center text-gray-600 mb-8">
+        Register to get started with the ATS system
+      </p>
+      
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -133,7 +120,7 @@ const RegisterForm = () => {
               />
             </div>
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="last_name">Last Name</Label>
             <div className="relative">
@@ -150,7 +137,7 @@ const RegisterForm = () => {
             </div>
           </div>
         </div>
-
+        
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
@@ -167,7 +154,7 @@ const RegisterForm = () => {
             />
           </div>
         </div>
-
+        
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -178,6 +165,7 @@ const RegisterForm = () => {
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleChange}
+              placeholder="••••••••"
               required
               className="pl-10"
             />
@@ -194,7 +182,7 @@ const RegisterForm = () => {
             </button>
           </div>
         </div>
-
+        
         <div className="space-y-2">
           <Label htmlFor="confirm_password">Confirm Password</Label>
           <div className="relative">
@@ -205,6 +193,7 @@ const RegisterForm = () => {
               type={showConfirmPassword ? "text" : "password"}
               value={formData.confirm_password}
               onChange={handleChange}
+              placeholder="••••••••"
               required
               className="pl-10"
             />
@@ -221,26 +210,21 @@ const RegisterForm = () => {
             </button>
           </div>
         </div>
-
+        
         <p className="text-xs text-gray-500">
-          Your username will be automatically generated (e.g. Recruiter01,
-          Recruiter02)
+          Your username will be automatically generated (e.g. Recruiter01, Recruiter02)
         </p>
-
-        <Button
-          type="submit"
-          className="w-full mt-2 bg-[#421820] hover:bg-[#421820]/90"
-          disabled={loading}
-        >
+        
+        <Button type="submit" className="w-full mt-2" disabled={loading}>
           {loading ? "Creating Account..." : "Create Account"}
         </Button>
       </form>
-
+      
       <p className="mt-6 text-center text-sm">
         Already have an account?{" "}
-        <Link
-          to="/login"
-          className="font-medium text-[#421820] hover:text-[#421820]/90"
+        <Link 
+          to="/login" 
+          className="font-medium text-ats-blue-600 hover:text-ats-blue-800"
         >
           Sign in instead
         </Link>

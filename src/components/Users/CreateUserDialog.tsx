@@ -96,7 +96,7 @@ const CreateUserDialog = ({
     try {
       setIsLoading(true);
 
-      // First, create the user using signup
+      // Create the user using signup - the trigger will automatically create the public user profile
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -111,22 +111,6 @@ const CreateUserDialog = ({
       });
 
       if (authError) throw authError;
-
-      // Then, create the user in public.users with the same ID
-      const { error: dbError } = await supabase
-        .from("users")
-        .insert([{
-          id: authData.user?.id,
-          first_name: values.first_name,
-          last_name: values.last_name,
-          email: values.email,
-          username: values.username,
-          role: values.role,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }]);
-
-      if (dbError) throw dbError;
 
       toast({
         title: "Success",

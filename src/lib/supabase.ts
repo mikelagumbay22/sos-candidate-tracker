@@ -1,39 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/types/supabase';
+import type { Database } from '@/types/supabase';
 
 // Use environment variables from the .env file
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE;
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Create a single auth instance with shared storage
-const authOptions = {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storageKey: 'supabase.auth.token',
-    storage: window.localStorage
-  }
-};
-
 // Create a single instance of the Supabase client
-const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, authOptions);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
-// Create admin client with the same auth options but different storage key
-const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
-  ...authOptions,
-  auth: {
-    ...authOptions.auth,
-    storageKey: 'supabase.admin.auth.token'
+// Helper function to get admin client when needed
+export const getAdminClient = () => {
+  if (!supabaseServiceKey) {
+    throw new Error('Missing Supabase service role key');
   }
-});
-
-export { supabase, supabaseAdmin };
+  return createClient<Database>(supabaseUrl, supabaseServiceKey);
+};
 
 // Helper functions for authentication
 export const signIn = async (email: string, password: string) => {
@@ -41,13 +27,36 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const signUp = async (email: string, password: string, metadata: { first_name: string, last_name: string, username: string, role: string }) => {
-  return await supabase.auth.signUp({ 
-    email, 
-    password,
-    options: {
-      data: metadata
+  console.log("Attempting signup with:", { email, metadata });
+  try {
+    const result = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: metadata,
+        emailRedirectTo: `${window.location.origin}/login`,
+      }
+    });
+    
+    console.log("Signup response:", result);
+    
+    if (result.error) {
+      console.error("Signup error:", result.error);
+      throw result.error;
     }
-  });
+    
+    // Only try to insert user if signup was successful and we have a user
+    if (result.data && result.data.user) {
+      // No need to manually insert into users table - the trigger will handle this
+      return result;
+    } else {
+      console.error("Signup failed: No user data returned");
+      throw new Error("Signup failed: No user data returned");
+    }
+  } catch (error) {
+    console.error("Signup failed:", error);
+    throw error;
+  }
 };
 
 export const signOut = async () => {
@@ -65,21 +74,6 @@ export const resetPassword = async (email: string) => {
   });
 };
 
-// Insert user data into users table with service role client
-// This bypasses RLS and ensures the user is created even if policies would block it
-export const insertUserData = async (userData: {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  username: string;
-  role: 'recruiter' | 'administrator';
-}) => {
-  return await supabaseAdmin
-    .from('users')
-    .insert([userData]);
-};
-
 // Get user count for auto-generating username
 export const getUserCount = async () => {
   const { count } = await supabase
@@ -91,9 +85,24 @@ export const getUserCount = async () => {
 
 // Generate username
 export const generateUsername = async (firstName: string) => {
-  const count = await getUserCount();
-  const userNumber = (count + 10).toString().padStart(2, '0');
-  return `Recruiter${userNumber}`;
+  const baseUsername = firstName.toLowerCase().replace(/\s+/g, '');
+  let username = baseUsername;
+  let counter = 1;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', username)
+      .single();
+
+    if (error || !data) {
+      return username;
+    }
+
+    username = `${baseUsername}${counter}`;
+    counter++;
+  }
 };
 
 // Get user profile data directly from auth.users to avoid RLS issues
@@ -135,9 +144,8 @@ export const getUserProfile = async (userId: string) => {
 };
 
 // Update user profile with service role to bypass RLS
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const updateUserProfile = async (userId: string, updates: any) => {
-  return await supabaseAdmin
+export const updateUserProfile = async (userId: string, updates: Partial<Database['public']['Tables']['users']['Update']>) => {
+  return await getAdminClient()
     .from('users')
     .update(updates)
     .eq('id', userId);
