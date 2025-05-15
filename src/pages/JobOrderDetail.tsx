@@ -535,7 +535,7 @@ const JobOrderDetail = () => {
               <h2 className="text-xl font-semibold flex-1">
                 {jobOrder.job_title}
               </h2>
-
+              {user?.role === 'administrator' && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -572,6 +572,7 @@ const JobOrderDetail = () => {
                   Delete
                 </Button>
               </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
