@@ -36,6 +36,16 @@ ON public.applicants FOR UPDATE
 TO authenticated 
 USING (auth.uid() = author_id);
 
+CREATE POLICY "Allow administrators to update any applicant" 
+ON public.applicants FOR UPDATE 
+TO authenticated 
+USING (
+  auth.uid() IN (
+    SELECT id FROM auth.users 
+    WHERE raw_user_meta_data->>'role' = 'administrator'
+  )
+);
+
 -- Grant permissions
 GRANT ALL ON public.applicants TO authenticated;
 GRANT ALL ON public.applicants TO service_role; 

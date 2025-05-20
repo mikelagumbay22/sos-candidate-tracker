@@ -21,6 +21,16 @@ import { formatDateToEST } from "@/lib/utils";
 import ViewResumeDialog from "@/components/job-orders/ViewResumeDialog";
 import ApplicantJobOrdersDialog from "@/components/Applicants/ApplicantJobOrdersDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Applicants() {
   const { user } = useAuth();
@@ -34,6 +44,8 @@ export default function Applicants() {
   );
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
   const [isJobOrdersDialogOpen, setIsJobOrdersDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [applicantToDelete, setApplicantToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchApplicants();
@@ -87,7 +99,14 @@ export default function Applicants() {
     }
   };
 
-  const handleDeleteApplicant = async (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setApplicantToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteApplicant = async () => {
+    if (!applicantToDelete) return;
+
     try {
       // Soft delete by setting deleted_at
       const { error } = await supabase
@@ -96,7 +115,7 @@ export default function Applicants() {
           deleted_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", id);
+        .eq("id", applicantToDelete);
 
       if (error) throw error;
 
@@ -114,6 +133,9 @@ export default function Applicants() {
         description: "Failed to delete applicant. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setApplicantToDelete(null);
     }
   };
 
@@ -279,9 +301,7 @@ export default function Applicants() {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() =>
-                                handleDeleteApplicant(applicant.id)
-                              }
+                              onClick={() => handleDeleteClick(applicant.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -351,6 +371,21 @@ export default function Applicants() {
           />
         </>
       )}
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the applicant.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteApplicant}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
