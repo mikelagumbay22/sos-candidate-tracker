@@ -61,8 +61,7 @@ const JobOrders = () => {
           const { count } = await supabase
             .from("joborder_applicant")
             .select("*", { count: "exact", head: true })
-            .eq("joborder_id", job.id)
-            .is('deleted_at', null);
+            .eq("joborder_id", job.id);
 
           return {
             ...job,

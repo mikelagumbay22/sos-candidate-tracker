@@ -118,7 +118,7 @@ const JobOrderCard = ({ jobOrder, onClick }: JobOrderCardProps) => {
             <div className="flex items-center text-sm text-muted-foreground">
               <Users className={`h-4 w-4 mr-1 ${jobOrder.applicant_count > 0 ? "text-red-500" : ""}`} />
               <span className={jobOrder.applicant_count > 0 ? "text-red-500 font-bold" : ""}>
-                {jobOrder.applicant_count || 0} candidates
+                {jobOrder.applicant_count || 0} candidate/s
               </span>
             </div>
 
