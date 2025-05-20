@@ -32,9 +32,9 @@ const applicantFormSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required" }),
   last_name: z.string().min(1, { message: "Last name is required" }),
   email: z.string().email({ message: "Invalid email address" }),
-  phone: z.string().optional(),
+  phone: z.string().min(1, { message: "Phone number is required" }),
   location: z.string().optional(),
-  cv_link: z.string().optional(),
+  cv_link: z.string().min(1, { message: "CV/Resume is required" }),
   linkedin_profile: z.string().optional(),
 });
 
@@ -88,69 +88,81 @@ const AddApplicantDialog = ({
     });
   };
   
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!uploadedFile) {
-      toast({
-        title: "Error",
-        description: "Please select a file to upload.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      // Format timestamp in EST timezone
-      const now = new Date();
-      const estDate = toZonedTime(now, "America/New_York");
-      const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
-
-      // Create file path and name
-      const fileExt = uploadedFile.name.split('.').pop();
-      const sanitizedName = `${applicantForm.getValues('first_name')} ${applicantForm.getValues('last_name')}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-      const fileName = `${timestamp}.${fileExt}`;
-      const filePath = `${sanitizedName}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, uploadedFile, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error(uploadError.message);
-      }
-
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(filePath);
-
-      // Update the form with the URL
-      applicantForm.setValue('cv_link', publicUrl);
+      const file = e.target.files[0];
       
-      toast({
-        title: "Success",
-        description: "Resume uploaded successfully!",
-      });
-    } catch (error) {
-      console.error("Error uploading resume:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload resume. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      // Validate file type
+      const allowedTypes = ['.pdf', '.doc', '.docx'];
+      const fileExt = `.${file.name.split('.').pop()?.toLowerCase()}`;
+      
+      if (!allowedTypes.includes(fileExt)) {
+        toast({
+          title: "Error",
+          description: "Please upload a PDF or Word document.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setUploadedFile(file);
+      
+      try {
+        setIsLoading(true);
+        
+        // Format timestamp in EST timezone
+        const now = new Date();
+        const estDate = toZonedTime(now, "America/New_York");
+        const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
+        
+        // Create file path and name
+        const sanitizedName = `${applicantForm.getValues('first_name')} ${applicantForm.getValues('last_name')}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+        const fileName = `${timestamp}${fileExt}`;
+        const filePath = `${sanitizedName}/${fileName}`;
+        
+        // Upload file to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('resumes')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (uploadError) throw uploadError;
+        
+        // Get the public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(filePath);
+          
+        // Update form with the URL
+        applicantForm.setValue('cv_link', publicUrl);
+        
+        toast({
+          title: "Success",
+          description: "Resume uploaded successfully!",
+        });
+      } catch (error) {
+        console.error("Error uploading resume:", error);
+        toast({
+          title: "Error",
+          description: "Failed to upload resume. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -188,9 +200,9 @@ const AddApplicantDialog = ({
         const timestamp = format(estDate, "MM-dd-yyyy hh:mm a");
 
         // Create file path and name
-        const fileExt = uploadedFile.name.split('.').pop();
+        const fileExt = `.${uploadedFile.name.split('.').pop()?.toLowerCase()}`;
         const sanitizedName = `${applicantValues.first_name} ${applicantValues.last_name}`.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
-        const fileName = `${timestamp}.${fileExt}`;
+        const fileName = `${timestamp}${fileExt}`;
         const filePath = `${sanitizedName}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
@@ -334,9 +346,9 @@ const AddApplicantDialog = ({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone*</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} required />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -376,17 +388,24 @@ const AddApplicantDialog = ({
               name="cv_link"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CV/Resume</FormLabel>
+                  <FormLabel>CV/Resume*</FormLabel>
                   <FormControl>
                     <div className="space-y-2">
                       <Input
                         type="file"
                         accept=".pdf,.doc,.docx"
                         onChange={handleFileChange}
+                        disabled={isLoading}
+                        required
                       />
-                      {uploadedFile && (
+                      {isLoading && (
                         <p className="text-sm text-muted-foreground">
-                          Resume will be uploaded when you save
+                          Uploading resume...
+                        </p>
+                      )}
+                      {field.value && !isLoading && (
+                        <p className="text-sm text-green-600">
+                          Resume uploaded successfully
                         </p>
                       )}
                     </div>

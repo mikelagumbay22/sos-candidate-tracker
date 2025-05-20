@@ -132,7 +132,12 @@ const ApplicantsTable = ({
           <ViewResumeDialog
             open={isResumeDialogOpen}
             onOpenChange={setIsResumeDialogOpen}
-            applicant={selectedApplicant}
+            applicantName={`${selectedApplicant.first_name} ${selectedApplicant.last_name}`}
+            cvLink={selectedApplicant.cv_link || ""}
+            applicantId={selectedApplicant.id}
+            onSuccess={() => {
+              window.location.reload();
+            }}
           />
           <ApplicantJobOrdersDialog
             open={isJobOrdersDialogOpen}

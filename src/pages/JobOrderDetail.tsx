@@ -92,6 +92,11 @@ const JobOrderDetail = () => {
   const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // Add console.log to debug user object
+  console.log('Current user:', user);
+  console.log('User role:', user?.role);
+
   const [jobOrder, setJobOrder] = useState<JobOrderWithClient | null>(null);
   const [applicants, setApplicants] = useState<ApplicantWithDetails[]>([]);
   const [loading, setLoading] = useState(true);

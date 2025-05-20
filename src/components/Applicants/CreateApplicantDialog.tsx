@@ -35,9 +35,9 @@ const formSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required" }),
   last_name: z.string().min(1, { message: "Last name is required" }),
   email: z.string().email({ message: "Invalid email address" }),
-  phone: z.string().optional(),
+  phone: z.string().min(1, { message: "Phone number is required" }),
   location: z.string().optional(),
-  cv_link: z.string().optional(),
+  cv_link: z.string().min(1, { message: "CV/Resume is required" }),
   linkedin_profile: z.string().optional(),
 });
 

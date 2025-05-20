@@ -62,7 +62,20 @@ const EditUserDialog = ({
     try {
       setIsLoading(true);
 
-      const { error } = await supabase
+      // First, update the auth metadata
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          username: values.username,
+          role: values.role,
+        },
+      });
+
+      if (authError) throw authError;
+
+      // Then update the users table
+      const { error: updateError } = await supabase
         .from("users")
         .update({
           first_name: values.first_name,
@@ -74,7 +87,7 @@ const EditUserDialog = ({
         })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       toast({
         title: "Success",
