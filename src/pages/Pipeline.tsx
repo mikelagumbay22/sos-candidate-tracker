@@ -41,9 +41,9 @@ export default function Pipeline() {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar  user={user} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header  user={user} />
     
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">

@@ -104,9 +104,9 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
       <div className="flex items-center gap-4">
         <RecentUpdatesDialog />
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          {/* <h1 className="text-2xl font-bold text-gray-800">
             {user?.username || "User"}
-          </h1>
+          </h1> */}
         </div>
 
         <div>
@@ -200,10 +200,10 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
               </p>
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Username</Label>
               <Input value={user?.username || ""} disabled />
-            </div>
+            </div> */}
           </div>
 
           <DialogFooter>

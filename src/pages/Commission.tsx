@@ -11,6 +11,8 @@ import { formatCurrency, formatCurrencyPHP } from "@/lib/utils";
 import CommissionSummary from "@/components/commission/CommissionSummary";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import Sidebar from "@/components/layout/Sidebar";
+import Header from "@/components/layout/Header";
 
 interface CommissionPageProps {
   user: User | null;
@@ -177,6 +179,11 @@ const Commission = ({ user }: CommissionPageProps) => {
   }
 
   return (
+    <div className="flex h-screen">
+    <Sidebar user={user} />
+
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <Header user={user} />
     <Layout pageTitle="Commission" user={user}>
       <div className="container mx-auto py-6">
         <div className="mb-6">
@@ -198,6 +205,8 @@ const Commission = ({ user }: CommissionPageProps) => {
         />
       </div>
     </Layout>
+    </div>
+    </div>
   );
 };
 

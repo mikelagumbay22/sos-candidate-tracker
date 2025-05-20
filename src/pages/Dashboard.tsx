@@ -12,10 +12,10 @@ export default function Dashboard() {
   
   return (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar user={user} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+        <Header user={user} />
         
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
           <div className="max-w-7xl mx-auto animate-fade-in">
