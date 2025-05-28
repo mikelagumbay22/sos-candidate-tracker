@@ -80,7 +80,7 @@ const EndorseApplicantDialog = ({
       form.reset();
       fetchJobOrders();
     }
-  }, [open]);
+  }, [open, form]);
 
   useEffect(() => {
     const subscription = form.watch((value) => {
